@@ -20,7 +20,7 @@ public class InvoiceListView extends WebLocator {
 
     public void selectAll() {
         invoiceMenuItem.mouseOver();
-        invoicesListItem.assertClick();
+        invoicesListItem.click();
 
         WebLocator waiting = new WebLocator().setText("Se încarcă...");
         ConditionManager conditionManager = new ConditionManager().add(new ElementRemovedSuccessCondition(waiting));
@@ -29,15 +29,15 @@ public class InvoiceListView extends WebLocator {
         closePromo.click();
 
         if (seeInvoices.isElementPresent()) {
-            seeInvoices.assertClick();
+            seeInvoices.click();
         }
 
         closePromo.click();
 
-        selectAllButton.assertClick();
+        selectAllButton.click();
     }
 
     public void payAll() {
-        payAllButton.assertClick();
+        payAllButton.click();
     }
 }
