@@ -23,13 +23,13 @@ public class TestyUtilitySteps extends TestBase {
     }
 
     @When("^I click on link containing text \"([^\"]*)\"$")
-    public void iClickOnLinkContainingText(String text) throws Throwable {
+    public void iClickOnLinkContainingText(String text)  {
         WebLink link = new WebLink().setText(text, SearchType.TRIM, SearchType.CHILD_NODE);
         link.click();
     }
 
     @When("^I click on element with text \"([^\"]*)\"$")
-    public void I_click_on_element_with_text(String text) throws Throwable {
+    public void I_click_on_element_with_text(String text)  {
         WebLocator element = new WebLocator().setText(text);
         element.click();
     }
