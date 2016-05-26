@@ -42,7 +42,7 @@ public class TestyUtilitySteps extends TestBase {
 
     @When("^I click on \"([^\"]*)\" button$")
     public void I_click_button(String text) {
-        Button button = new Button().setText(text, SearchType.EQUALS, SearchType.TRIM, SearchType.DEEP_CHILD_NODE_OR_SELF);
+        Button button = new Button().setText(text, SearchType.EQUALS, SearchType.TRIM, SearchType.DEEP_CHILD_NODE_OR_SELF).setResultIdx("last()");
         button.click();
     }
 
