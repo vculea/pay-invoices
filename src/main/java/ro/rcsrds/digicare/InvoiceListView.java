@@ -26,13 +26,13 @@ public class InvoiceListView extends WebLocator {
         ConditionManager conditionManager = new ConditionManager().add(new ElementRemovedSuccessCondition(waiting));
         Condition condition = conditionManager.execute();
 
-        closePromo.click();
+        closePromo.doClick();
 
         if (seeInvoices.isElementPresent()) {
             seeInvoices.click();
         }
 
-        closePromo.click();
+        closePromo.doClick();
 
         selectAllButton.click();
     }
