@@ -1,5 +1,6 @@
 package org.fasttrackit.util;
 
+import com.sdl.selenium.web.Position;
 import com.sdl.selenium.web.SearchType;
 import com.sdl.selenium.web.WebLocator;
 import com.sdl.selenium.web.button.Button;
@@ -42,7 +43,7 @@ public class TestyUtilitySteps extends TestBase {
 
     @When("^I click on \"([^\"]*)\" button$")
     public void I_click_button(String text) {
-        Button button = new Button().setText(text, SearchType.EQUALS, SearchType.TRIM, SearchType.DEEP_CHILD_NODE_OR_SELF).setResultIdx("last()");
+        Button button = new Button().setText(text, SearchType.EQUALS, SearchType.TRIM, SearchType.DEEP_CHILD_NODE_OR_SELF).setResultIdx(Position.LAST);
         button.click();
     }
 

@@ -11,6 +11,7 @@ import org.junit.runner.RunWith;
                 "ro.btrl",
                 "ro.payu.secure",
                 "ro.secure11gw",
+                "ro.mymoney",
                 "ro.rcsrds.digicare"
         },
         features = {
