@@ -10,7 +10,7 @@ import com.sdl.selenium.web.link.WebLink;
 public class InvoiceListView extends WebLocator {
     private WebLink invoiceMenuItem = new WebLink().setText("Facturi / Plati", SearchType.TRIM, SearchType.CHILD_NODE);
     private WebLink payOnline = new WebLink().setText("Plateste Online", SearchType.TRIM, SearchType.CHILD_NODE).setVisibility(true);
-    private ComboBox placeCombo = new ComboBox().setLabel("Selecteaza locul de Consum");
+    private ComboBox placeCombo = new ComboBox().setLabel("Cod Client:");
     private CheckBox selectAllButton = new CheckBox().setId("bifeazaTot");
     private InputButton payAllButton = new InputButton().setText("Continua plata");
     private InputButton confirmButton = new InputButton().setText("Confirmati plata online");
