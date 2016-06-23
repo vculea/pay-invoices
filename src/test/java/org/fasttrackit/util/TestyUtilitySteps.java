@@ -23,13 +23,13 @@ public class TestyUtilitySteps extends TestBase {
     }
 
     @When("^I click on link containing text \"([^\"]*)\"$")
-    public void iClickOnLinkContainingText(String text) throws Throwable {
+    public void iClickOnLinkContainingText(String text)  {
         WebLink link = new WebLink().setText(text, SearchType.TRIM, SearchType.CHILD_NODE);
         link.click();
     }
 
     @When("^I click on element with text \"([^\"]*)\"$")
-    public void I_click_on_element_with_text(String text) throws Throwable {
+    public void I_click_on_element_with_text(String text)  {
         WebLocator element = new WebLocator().setText(text);
         element.click();
     }
@@ -42,7 +42,7 @@ public class TestyUtilitySteps extends TestBase {
 
     @When("^I click on \"([^\"]*)\" button$")
     public void I_click_button(String text) {
-        Button button = new Button().setText(text, SearchType.EQUALS, SearchType.TRIM, SearchType.DEEP_CHILD_NODE_OR_SELF).setResultIdx("last()");
+        Button button = new Button().setText(text, SearchType.EQUALS, SearchType.TRIM, SearchType.DEEP_CHILD_NODE_OR_SELF).setResultIdx(Position.LAST);
         button.click();
     }
 
