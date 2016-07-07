@@ -3,6 +3,7 @@ package ro.btrl;
 import com.sdl.selenium.web.SearchType;
 import com.sdl.selenium.web.table.Cell;
 import com.sdl.selenium.web.table.Table;
+import com.sdl.selenium.web.utils.Utils;
 import cucumber.api.java.en.Then;
 import org.fasttrackit.util.BankCardDetails;
 import org.fasttrackit.util.TestBase;
@@ -23,7 +24,13 @@ public class Secure3DSteps extends TestBase {
     public void enterPassword() throws Throwable {
         Cell cell = new Table().getCell(2, new Cell(1, "Suma:", SearchType.DEEP_CHILD_NODE_OR_SELF));
         cell.setResultIdx(2);
-        String sum = cell.getText().split(" ")[0];
+        String text = cell.getText();
+        if(text != null && "".equals(text)){
+            cell.ready(10);
+            Utils.sleep(2000);
+            text = cell.getText();
+        }
+        String sum = text.split(" ")[0];
         System.setProperty("sum", sum);
         BankCardDetails card = new BankCardDetails();
         secure3DPassword.setPassword(card.getPassword());
