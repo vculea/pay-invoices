@@ -22,14 +22,17 @@ public class Secure3DSteps extends TestBase {
 
     @Then("^I enter BT 3DSecure password$")
     public void enterPassword() throws Throwable {
+        secure3DPassword.getPasswordField().ready(20);
         Cell cell = new Table().getCell(2, new Cell(1, "Suma:", SearchType.DEEP_CHILD_NODE_OR_SELF));
         cell.setResultIdx(2);
-        String text = cell.getText();
-        if(text != null && "".equals(text)){
+        String text;
+        int time = 0;
+        do {
             cell.ready(10);
             Utils.sleep(2000);
             text = cell.getText();
-        }
+            time++;
+        } while ((text != null && "".equals(text)) || time < 10);
         String sum = text.split(" ")[0];
         System.setProperty("sum", sum);
         BankCardDetails card = new BankCardDetails();
