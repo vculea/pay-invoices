@@ -5,6 +5,7 @@ import com.sdl.selenium.web.SearchType;
 import com.sdl.selenium.web.WebLocator;
 import com.sdl.selenium.web.form.ComboBox;
 import com.sdl.selenium.web.form.TextField;
+import com.sdl.selenium.web.utils.Utils;
 import org.fasttrackit.util.BankCardDetails;
 
 import java.util.Locale;
@@ -32,6 +33,7 @@ public class CardView extends WebLocator {
         // month is in format "05 Mai"
         String month = card.getMonth() + " " + card.getMonthName(new Locale("ro"));
         setValues(card.getNumber(), card.getCvv(), month, card.getYear(), card.getOwner());
+        Utils.sleep(500);
     }
 
     public void switchToPopup() {

@@ -1,13 +1,10 @@
 package ro.mymoney;
 
-import com.sdl.selenium.extjs3.form.DateField;
 import com.sdl.selenium.extjs4.form.ComboBox;
 import com.sdl.selenium.extjs4.form.TextField;
-import com.sdl.selenium.extjs4.grid.GridEditor;
 import com.sdl.selenium.extjs4.window.Window;
 import com.sdl.selenium.extjs6.button.Button;
 import com.sdl.selenium.extjs6.grid.Grid;
-import com.sdl.selenium.extjs6.tab.Tab;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,7 +14,7 @@ public class View {
     public View() {}
 
     Grid grid = new Grid().setId("userlist");
-    Button add = new Button(grid).setAttribute("data-qtip","Adaugă o înregistrare");
+    Button add = new Button(grid).setAttribute("data-qtip","Adaugă o înregistrare").setVisibility(true);
 
     Window addNew = new Window("Add New Row");
     TextField denumireField = new TextField(addNew).setLabel("Denumire:").setLabelPosition("/..//following-sibling::*//");
@@ -34,8 +31,7 @@ public class View {
         category.select(cat);
         subCategory.select(sub);
         sumaField.setValue(sum);
-        boolean click = saveButton.click();
-        return click;
+        return saveButton.click();
     }
 
     public static void main(String[] args) {
