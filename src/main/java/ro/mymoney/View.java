@@ -1,8 +1,9 @@
 package ro.mymoney;
 
-import com.sdl.selenium.extjs4.form.ComboBox;
-import com.sdl.selenium.extjs4.form.TextField;
-import com.sdl.selenium.extjs4.window.Window;
+import com.sdl.selenium.extjs6.form.ComboBox;
+import com.sdl.selenium.extjs6.form.DateField;
+import com.sdl.selenium.extjs6.form.TextField;
+import com.sdl.selenium.extjs6.window.Window;
 import com.sdl.selenium.extjs6.button.Button;
 import com.sdl.selenium.extjs6.grid.Grid;
 import org.slf4j.Logger;
@@ -13,21 +14,20 @@ public class View {
 
     public View() {}
 
-    Grid grid = new Grid().setId("userlist");
-    Button add = new Button(grid).setAttribute("data-qtip","Adaugă o înregistrare").setVisibility(true);
-
-    Window addNew = new Window("Add New Row");
-    TextField denumireField = new TextField(addNew).setLabel("Denumire:").setLabelPosition("/..//following-sibling::*//");
-    ComboBox category = new ComboBox(addNew).setLabel("Categorie:").setLabelPosition("/..//following-sibling::*//");
-    ComboBox subCategory = new ComboBox(addNew).setLabel("Subcategorie:").setLabelPosition("/..//following-sibling::*//");
-//    DateField dateField = new DateField(addNew).setLabel("Data:").setLabelPosition("/..//following-sibling::*//");
-    TextField sumaField = new TextField(addNew).setLabel("Suma:").setLabelPosition("/..//following-sibling::*//");
-    Button saveButton = new Button(addNew, "Save");
+    private Grid grid = new Grid();
+    private Button add = new Button(grid, "Add Transaction");
+    private Window addNew = new Window("Add New");
+    private TextField name = new TextField(addNew, "Name:") ;
+    private ComboBox category = new ComboBox(addNew, "Category:");
+    private ComboBox subCategory = new ComboBox(addNew, "Subcategory:");
+    private DateField dateField = new DateField(addNew, "Data:");
+    private TextField sumaField = new TextField(addNew, "Price:");
+    private Button saveButton = new Button(addNew, "Save");
 
     public boolean addInsert(String denum, String cat, String sub, String sum){
         add.ready(10);
         add.click();
-        denumireField.setValue(denum);
+        name.setValue(denum);
         category.select(cat);
         subCategory.select(sub);
         sumaField.setValue(sum);
