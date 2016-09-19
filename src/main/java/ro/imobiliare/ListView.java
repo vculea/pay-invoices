@@ -13,7 +13,7 @@ public class ListView extends WebLocator {
 
     public ListView() {
         setClasses("box-anunt");
-        setExcludeClasses("profesional");
+        setExcludeClasses("proiect", "profesional", "premium", "standard");
     }
 
     private WebLocator title = new WebLocator(this).setTag("h2").setClasses("titlu-anunt");
@@ -23,48 +23,55 @@ public class ListView extends WebLocator {
     private WebLocator pret = new WebLocator(this).setClasses("pret");
 
     public void getData() {
-        List<String> list = new ArrayList<>();
-        StringBuilder ap;
-        for (int i = 1; i < 11; i++) {
-            setPosition(i);
-            ap = new StringBuilder();
-            String text = title.getText();
-            ap.append(text).append(", ");
-//            LOGGER.info("title: {}", text);
-            String href = link.getAttribute("href");
-            ap.append(href).append(", ");
-//            LOGGER.info("link: {}", href);
-            String localizareText = localizare.getText();
-            ap.append(localizareText).append(", ");
-//            LOGGER.info("localizare: {}", localizareText);
-            String car = caracteristici.getText();
-            if(car == null){
-                LOGGER.debug("");
-            }
-            String[] split = car != null ? car.split("\n") : new String[0];
-            String caracteristiciText = "";
-            int mp = 0;
-            for (String s : split) {
-                caracteristiciText = caracteristiciText + " " + s;
-                if(s.contains("mp")){
-                    String s1 = s.split(" ")[0].replaceAll("\\.", "");
-                    mp = Integer.parseInt(s1);
+        List<Notice> list = new ArrayList<>();
+        int page = 1;
+        do {
+            setPosition(-1);
+            int size = findElements().size();
+            for (int i = 1; i < size; i++) {
+                setPosition(i);
+                scrollToWebLocator(this);
+                String text = title.getText();
+                String href = link.getAttribute("href");
+                if (!localizare.ready()) {
+                    LOGGER.debug("loc");
                 }
+                String localizareText = localizare.getText();
+                localizareText = localizareText.contains("zona") ? localizareText.split("zona ")[1] : localizareText;
+                String car = caracteristici.getText();
+                String[] split = car != null ? car.split("\n") : new String[0];
+                String caracteristiciText = "";
+                int mp = 0;
+                for (String s : split) {
+                    caracteristiciText = caracteristiciText + " " + s;
+                    if (s.contains("mp")) {
+                        String meter = s.replaceAll("\\.", " ").split(" ")[0];
+                        mp = Integer.parseInt(meter);
+                    }
+                }
+                String pretText = pret.getText();
+                String s = pretText.split(" ")[0];
+                pretText = s.replaceAll("\\.", "");
+                int pr = Integer.parseInt(pretText);
+                long ff = 0;
+                if (pr > 0 && mp > 0) {
+                    ff = pr / mp;
+                }
+                list.add(new Notice(text, href, localizareText, caracteristiciText, pretText, ff));
             }
-            ap.append(caracteristiciText).append(", ");
-//            LOGGER.info("caracteristici: {}", caracteristiciText);
-            String pretText = pret.getText();
-            ap.append(pretText).append(", ");
-            String s = pretText.split(" ")[0];
-            pretText = s.replaceAll("\\.", "");
-            int pr = Integer.parseInt(pretText);
-            long ff = pr/mp;
-            ap.append(ff).append(";");
-//            LOGGER.info("pret: {}", pretText);
-            list.add(ap.toString());
+            page++;
+            WebLink next = new WebLink().setAttribute("data-pagina", page + "");
+            scrollToWebLocator(next);
+            next.click();
+        } while (page < 5);
+        for (Notice notice : list) {
+            LOGGER.debug("{}", notice.toString());
         }
-        for (String anunt : list) {
-            LOGGER.debug("Anunt: {}", anunt);
+    }
+
+    public void scrollToWebLocator(WebLocator element) {
+        if (element.isElementPresent()) {
+            WebLocator.getExecutor().executeScript("arguments[0].scrollIntoView(true);", element.currentElement);
         }
     }
 }
