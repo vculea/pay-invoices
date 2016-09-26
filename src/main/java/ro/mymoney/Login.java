@@ -15,10 +15,13 @@ public class Login extends Window {
 
     private TextField emailField = new TextField(this, "E-mail:");
     private TextField passwordField = new TextField(this, "Password:");
+    private Button logOutButton = new Button(null, "LogOut");
     private Button logInButton = new Button(null, "LogIn");
     private Button loginButton = new Button(this, "Login");
 
     public void login(String user, String pass) {
+        logOutButton.click();
+        logInButton.ready();
         logInButton.click();
         ready();
         emailField.setValue(user);
