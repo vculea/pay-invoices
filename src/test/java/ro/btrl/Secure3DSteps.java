@@ -29,10 +29,10 @@ public class Secure3DSteps extends TestBase {
         int time = 0;
         do {
             cell.ready(10);
-            Utils.sleep(2000);
+            Utils.sleep(500);
             text = cell.getText();
             time++;
-        } while ((text != null && "".equals(text)) || time < 10);
+        } while ((text == null && "".equals(text)) || time > 20);
         String sum = text.split(" ")[0];
         System.setProperty("sum", sum);
         BankCardDetails card = new BankCardDetails();

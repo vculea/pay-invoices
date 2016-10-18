@@ -1,8 +1,8 @@
 package ro.mymoney;
 
-import com.sdl.selenium.extjs4.window.Window;
+import com.sdl.selenium.extjs6.window.Window;
 import com.sdl.selenium.extjs6.button.Button;
-import com.sdl.selenium.extjs4.form.TextField;
+import com.sdl.selenium.extjs6.form.TextField;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,18 +13,19 @@ public class Login extends Window {
         super("Login");
     }
 
-    private TextField emailField = new TextField(this).setLabel("E-mail:").setLabelPosition("/..//following-sibling::*//");
-    private TextField passwordField = new TextField(this).setLabel("Password:").setLabelPosition("/..//following-sibling::*//");
+    private TextField emailField = new TextField(this, "E-mail:");
+    private TextField passwordField = new TextField(this, "Password:");
+    private Button logOutButton = new Button(null, "LogOut");
+    private Button logInButton = new Button(null, "LogIn");
     private Button loginButton = new Button(this, "Login");
 
     public void login(String user, String pass) {
+        logOutButton.click();
+        logInButton.ready();
+        logInButton.click();
+        ready();
         emailField.setValue(user);
         passwordField.setValue(pass);
         loginButton.click();
-    }
-
-    public static void main(String[] args) {
-        Login login = new Login();
-        LOGGER.debug(login.emailField.getXPath());
     }
 }

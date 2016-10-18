@@ -1,6 +1,10 @@
 package ro.electricafurnizare.oficiulvirtual;
 
+import com.sdl.selenium.web.SearchType;
+import com.sdl.selenium.web.WebLocator;
 import com.sdl.selenium.web.utils.Utils;
+import cucumber.api.PendingException;
+import cucumber.api.java.en.And;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
 import org.fasttrackit.util.BankCardDetails;
@@ -46,5 +50,11 @@ public class ElectricaSteps extends TestBase {
 //        WebDriverWait wait = new WebDriverWait(WebDriverConfig.getDriver(), 5);
 //        wait.until(ExpectedConditions.alertIsPresent());
 //        WebDriverConfig.getDriver().switchTo().alert().accept();
+    }
+
+    @And("^I should see the text \"([^\"]*)\"$")
+    public void iShouldSeeTheText(String msg) {
+        WebLocator element = new WebLocator().setClasses("ov-continut-alerta").setText(msg, SearchType.CONTAINS, SearchType.DEEP_CHILD_NODE_OR_SELF);
+        element.assertReady();
     }
 }
