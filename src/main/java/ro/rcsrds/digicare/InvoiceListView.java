@@ -16,7 +16,8 @@ import org.openqa.selenium.InvalidElementStateException;
 
 public class InvoiceListView extends WebLocator {
     private WebLocator invoiceMenuItem = new WebLocator().setText("Facturi");
-    private WebLink invoicesListItem = new WebLink().setText("Listă Facturi", SearchType.TRIM, SearchType.CHILD_NODE);
+    private WebLink invoicesListItem = new WebLink().setText("Facturi servicii telecomunicații", SearchType.TRIM, SearchType.CHILD_NODE);
+    private WebLink energyInvoicesListItem = new WebLink().setText("Facturi Digi Energy", SearchType.TRIM, SearchType.CHILD_NODE);
     private Table invoices = new Table().setId("invoices");
     private Cell lastCell = invoices.getCell(1, new Cell(7, "neachitat")).setResultIdx(Position.LAST);
     private CheckBox checkBox = new CheckBox(lastCell);
@@ -29,7 +30,15 @@ public class InvoiceListView extends WebLocator {
     private WebLocator promoPopup2 = new WebLocator().setClasses("ui-dialog", "ui-front");
     private WebLocator closePromo2 = new WebLocator(promoPopup2).setClasses("ui-dialog-titlebar-close");
 
-    public void selectAll() {
+    public void openTelecomunicatiiInvoiceAndSelectLastItem() {
+        openAndSelectLastItem(invoicesListItem);
+    }
+
+    public void openEnergyInvoiceAndSelectLastItem() {
+        openAndSelectLastItem(energyInvoicesListItem);
+    }
+
+    private void openAndSelectLastItem(WebLink listItem) {
         try {
             closePromo2.doClick();
             // TODO try temporary until retry is implemented in click
@@ -38,7 +47,7 @@ public class InvoiceListView extends WebLocator {
             closePromo2.doClick();
         }
         invoiceMenuItem.mouseOver();
-        invoicesListItem.click();
+        listItem.click();
 
         WebLocator waiting = new WebLocator().setText("Se încarcă...");
         ConditionManager conditionManager = new ConditionManager().add(new ElementRemovedSuccessCondition(waiting));
