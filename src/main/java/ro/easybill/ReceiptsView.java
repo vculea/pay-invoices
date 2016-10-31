@@ -34,7 +34,7 @@ public class ReceiptsView extends Form {
         ready();
         nameEl.setValue(customer.getName());
         addressEl.setValue(customer.getAddress());
-        amountEl.setValue(customer.getAmount() + "");
+        amountEl.setValue(customer.getAmount());
         typeEl.setValue("Donatie");
         submitButton.click();
         WebDriverConfig.switchToLastTab();
