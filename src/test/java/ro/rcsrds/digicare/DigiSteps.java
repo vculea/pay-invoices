@@ -18,9 +18,14 @@ public class DigiSteps extends TestBase {
         Utils.sleep(2);
     }
 
-    @When("^I open invoice list on DIGI$")
+    @When("^I open invoice servicii telecomunicatii list on DIGI$")
     public void openInvoiceList() {
-        invoicesView.selectAll();
+        invoicesView.openTelecomunicatiiInvoiceAndSelectLastItem();
+    }
+
+    @When("^I open invoice energy list on DIGI$")
+    public void openEnergyInvoiceAndSelectLastItem() {
+        invoicesView.openEnergyInvoiceAndSelectLastItem();
     }
 
     @Then("^I select to pay all invoices on DIGI$")

@@ -12,7 +12,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 
 /**
- * Scenario: Generate chitante
+ * Scenario: Generate receipts
  * Given I open url "https://apps.easybill.ro/cgi-bin/index.cgi?action=login"
  * And I login on EasyBill using "EMAIL"/"PASSWORD"
  * And I generate receipts for:
@@ -33,8 +33,8 @@ public class EasyBillSteps extends TestBase {
     @And("^I generate receipts for:$")
     public void iGenerateReceiptsFor(List<Customers> customers) {
         for (Customers c : customers) {
-            receiptsView.generateReceiptsFor(c);
             LOGGER.info("{}", c.toString());
+            receiptsView.generateReceiptsFor(c);
         }
     }
 }

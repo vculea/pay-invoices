@@ -2,10 +2,10 @@ package ro.easybill;
 
 public class Customers {
     private String name;
-    private Long amount;
+    private String amount;
     private String address;
 
-    public Customers(String name, Long amount, String address) {
+    public Customers(String name, String amount, String address) {
         this.name = name;
         this.amount = amount;
         this.address = address;
@@ -15,7 +15,7 @@ public class Customers {
         return name;
     }
 
-    public Long getAmount() {
+    public String getAmount() {
         return amount;
     }
 
