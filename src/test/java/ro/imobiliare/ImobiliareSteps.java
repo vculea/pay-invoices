@@ -1,11 +1,17 @@
 package ro.imobiliare;
 
 import com.sdl.selenium.web.utils.Utils;
-import cucumber.api.PendingException;
 import cucumber.api.java.en.And;
 import cucumber.api.java.en.Then;
 import org.fasttrackit.util.TestBase;
 
+/**
+ * Scenario: Search
+ * Given I open url "http://www.imobiliare.ro/vanzare-apartamente/cluj-napoca?id=50210550"
+ * And I login on Imobiliare using "EMAIL"/"PASSWORD"
+ * And I select my search
+ * And I view news
+ */
 public class ImobiliareSteps extends TestBase {
     private LoginView loginView = new LoginView();
     private SearchView searchView = new SearchView();
@@ -22,8 +28,8 @@ public class ImobiliareSteps extends TestBase {
         searchView.mySearch();
     }
 
-    @And("^I view anunturile$")
-    public void iViewAnunturile(){
+    @And("^I view news")
+    public void iViewNews() {
         listView.getData();
     }
 }

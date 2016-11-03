@@ -6,10 +6,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 public class ListView extends WebLocator {
-    private static final Logger LOGGER = LoggerFactory.getLogger(WebLocator.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ListView.class);
 
     public ListView() {
         setClasses("box-anunt");
@@ -21,6 +22,7 @@ public class ListView extends WebLocator {
     private WebLocator localizare = new WebLocator(this).setClasses("localizare");
     private WebLocator caracteristici = new WebLocator(this).setTag("ul").setClasses("caracteristici");
     private WebLocator pret = new WebLocator(this).setClasses("pret");
+    private WebLocator pretEl = new WebLocator(pret).setClasses("pret-mare");
 
     public void getData() {
         List<Notice> list = new ArrayList<>();
@@ -31,7 +33,7 @@ public class ListView extends WebLocator {
             for (int i = 1; i < size; i++) {
                 setPosition(i);
                 scrollToWebLocator(this);
-                String text = title.getText();
+                String text = link.getAttribute("title");
                 String href = link.getAttribute("href");
                 if (!localizare.ready()) {
                     LOGGER.debug("loc");
@@ -49,7 +51,7 @@ public class ListView extends WebLocator {
                         mp = Integer.parseInt(meter);
                     }
                 }
-                String pretText = pret.getText();
+                String pretText = pretEl.getText();
                 String s = pretText.split(" ")[0];
                 pretText = s.replaceAll("\\.", "");
                 int pr = Integer.parseInt(pretText);
@@ -63,9 +65,12 @@ public class ListView extends WebLocator {
             WebLink next = new WebLink().setAttribute("data-pagina", page + "");
             scrollToWebLocator(next);
             next.click();
-        } while (page < 5);
+        } while (page < 7);
+
+        list.sort(Comparator.comparing(Notice::getOneMeter));
+
         for (Notice notice : list) {
-            LOGGER.debug("{}", notice.toString());
+            LOGGER.debug("{}", notice.toCSV());
         }
     }
 
