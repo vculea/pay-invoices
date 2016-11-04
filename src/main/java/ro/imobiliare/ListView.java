@@ -18,7 +18,8 @@ public class ListView extends WebLocator {
     }
 
     private WebLocator title = new WebLocator(this).setTag("h2").setClasses("titlu-anunt");
-    private WebLink link = new WebLink(title);
+    private WebLink link = new WebLink(title).setAttribute("itemprop", "name");
+    private WebLocator titleEl = new WebLocator(link);
     private WebLocator localizare = new WebLocator(this).setClasses("localizare");
     private WebLocator caracteristici = new WebLocator(this).setTag("ul").setClasses("caracteristici");
     private WebLocator pret = new WebLocator(this).setClasses("pret");
@@ -33,8 +34,7 @@ public class ListView extends WebLocator {
             for (int i = 1; i < size; i++) {
                 setPosition(i);
                 scrollToWebLocator(this);
-                String text = link.getAttribute("title");
-                String href = link.getAttribute("href");
+                String text = titleEl.getText();
                 if (!localizare.ready()) {
                     LOGGER.debug("loc");
                 }
@@ -59,7 +59,22 @@ public class ListView extends WebLocator {
                 if (pr > 0 && mp > 0) {
                     ff = pr / mp;
                 }
+//                link.sendKeys(Keys.CONTROL, Keys.RETURN);
+                link.mouseOver();
+                String href = link.getAttribute("href");
+//                WebDriverConfig.switchToLastTab();
+//                WebDriverConfig.getDriver().close();
+//                WebDriverConfig.switchToFirstTab();
+//                boolean added = true;
+//                for (Notice n : list) {
+//                    String nLink = n.getLink();
+//                    if (nLink.equals(href)) {
+//                        added = false;
+//                    }
+//                }
+//                if (added) {
                 list.add(new Notice(text, href, localizareText, caracteristiciText, pretText, ff));
+//                }
             }
             page++;
             WebLink next = new WebLink().setAttribute("data-pagina", page + "");
