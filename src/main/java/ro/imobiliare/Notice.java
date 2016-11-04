@@ -1,12 +1,8 @@
 package ro.imobiliare;
 
 import com.sdl.selenium.web.WebLocator;
-import com.sdl.selenium.web.link.WebLink;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class Notice {
     private static final Logger LOGGER = LoggerFactory.getLogger(WebLocator.class);
@@ -55,11 +51,20 @@ public class Notice {
     public String toString() {
         return "Notice{" +
                 "title='" + title + '\'' +
-                ", link='" + link + '\'' +
                 ", localizare='" + localizare + '\'' +
                 ", caracteristici='" + caracteristici + '\'' +
                 ", pret='" + pret + '\'' +
                 ", oneMeter=" + oneMeter +
+                ", link='" + link + '\'' +
                 '}';
+    }
+
+    public String toCSV() {
+        return title +
+                "| " + localizare +
+                "| " + caracteristici +
+                "| " + pret +
+                "| " + oneMeter +
+                "| " + link;
     }
 }
