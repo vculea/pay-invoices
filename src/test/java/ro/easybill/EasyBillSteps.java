@@ -28,6 +28,7 @@ public class EasyBillSteps extends TestBase {
     @Then("^I login on EasyBill using \"([^\"]*)\"/\"([^\"]*)\"$")
     public void login(String user, String pass) {
         assertThat(loginView.login(user, pass), is(true));
+        assertThat(loginView.closePopUp(), is(true));
     }
 
     @And("^I generate receipts for:$")

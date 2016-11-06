@@ -5,6 +5,7 @@ import com.sdl.selenium.bootstrap.form.Form;
 import com.sdl.selenium.utils.config.WebDriverConfig;
 import com.sdl.selenium.web.WebLocator;
 import com.sdl.selenium.web.button.InputButton;
+import com.sdl.selenium.web.form.ComboBox;
 import com.sdl.selenium.web.form.TextField;
 import com.sdl.selenium.web.link.WebLink;
 
@@ -21,6 +22,7 @@ public class ReceiptsView extends Form {
     private TextField nameEl = new TextField(this).setName("firma");
     private TextField addressEl = new TextField(this).setName("adresa");
     private TextField amountEl = new TextField(this).setName("suma");
+    private ComboBox currencyEl = new ComboBox(this).setName("defaultCurrency");
     private TextField typeEl = new TextField(this).setName("reprezentand");
     private InputButton submitButton = new InputButton(this).setName("Submit2");
 
@@ -35,6 +37,7 @@ public class ReceiptsView extends Form {
         nameEl.setValue(customer.getName());
         addressEl.setValue(customer.getAddress());
         amountEl.setValue(customer.getAmount());
+        currencyEl.select(customer.getType());
         typeEl.setValue("Donatie");
         submitButton.click();
         WebDriverConfig.switchToLastTab();
