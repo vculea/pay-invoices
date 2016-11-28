@@ -22,9 +22,7 @@ public class Secure3DSteps extends TestBase {
 
     @Then("^I enter BT 3DSecure password$")
     public void enterPassword() throws Throwable {
-        secure3DPassword.getPasswordField().ready(20);
         Cell cell = new Table().getCell(2, new Cell(1, "Suma:", SearchType.DEEP_CHILD_NODE_OR_SELF));
-        cell.setResultIdx(2);
         String text;
         int time = 0;
         do {
@@ -32,11 +30,9 @@ public class Secure3DSteps extends TestBase {
             Utils.sleep(500);
             text = cell.getText();
             time++;
-        } while ((text == null && "".equals(text)) || time > 20);
+        } while ((text == null || "".equals(text)) && time < 20);
         String sum = text.split(" ")[0];
         System.setProperty("sum", sum);
-        BankCardDetails card = new BankCardDetails();
-        secure3DPassword.setPassword(card.getPassword());
     }
 
     @Then("^I finalize payment on BT 3DSecure$")
