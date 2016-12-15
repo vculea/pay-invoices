@@ -17,7 +17,6 @@ public class ReceiptsView extends Form {
 
     private WebLink chitanteSiPlatiLink = new WebLink().setTitle("Chitante si plati");
     private Button emiteButton = new Button().setText("Emite chitanta");
-    private WebLink emiteChitantaEl = new WebLink().setId("earnings-report").setText("Emite chitanta");
     private TextField periodEl = new TextField().setId("rangepicker");
     private TextField nameEl = new TextField(this).setName("firma");
     private TextField addressEl = new TextField(this).setName("adresa");
@@ -25,12 +24,6 @@ public class ReceiptsView extends Form {
     private ComboBox currencyEl = new ComboBox(this).setName("defaultCurrency");
     private TextField typeEl = new TextField(this).setName("reprezentand");
     private InputButton submitButton = new InputButton(this).setName("Submit2");
-
-    public void generateReceiptsFor(Customers customer) {
-        emiteChitantaEl.assertReady();
-        emiteChitantaEl.click();
-        setCustomer(customer);
-    }
 
     private void setCustomer(Customers customer) {
         ready();
