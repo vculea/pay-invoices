@@ -1,6 +1,7 @@
 package ro.rcsrds.digicare;
 
 import com.sdl.selenium.web.utils.Utils;
+import cucumber.api.PendingException;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
 import org.fasttrackit.util.BankCardDetails;
@@ -42,5 +43,10 @@ public class DigiSteps extends TestBase {
     public void enterCardDetails() {
         BankCardDetails card = new BankCardDetails();
         cardView.setValues(card);
+    }
+
+    @Then("^I select to pay \"([^\"]*)\" invoices on DIGI$")
+    public void iSelectToPayInvoicesOnDIGI(String amount) {
+        invoicesView.payInvoice(amount);
     }
 }

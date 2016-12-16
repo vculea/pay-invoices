@@ -21,7 +21,7 @@ public class InvoiceListView extends WebLocator {
     private Table invoices = new Table().setId("invoices");
     private Cell lastCell = invoices.getCell(1, new Cell(7, "neachitat")).setResultIdx(Position.LAST);
     private CheckBox checkBox = new CheckBox(lastCell);
-    private Button payAllButton = new Button().setText("Plătiţi factura", SearchType.STARTS_WITH);
+    private Button payInvoicesButton = new Button().setText("Plătiţi factura", SearchType.STARTS_WITH);
     private WebLink seeInvoices = new WebLink().setAttribute("data-request", "/invoices-list");
 
     private WebLocator promoPopup = new WebLocator().setClasses("popup");
@@ -58,10 +58,17 @@ public class InvoiceListView extends WebLocator {
             seeInvoices.click();
         }
         closePromo.doClick();
-        checkBox.click();
     }
 
     public void payAll() {
-        payAllButton.click();
+        checkBox.click();
+        payInvoicesButton.click();
+    }
+
+    public void payInvoice(String amount) {
+        Cell lastCell = invoices.getCell(1, new Cell(5, amount), new Cell(7, "neachitat")).setResultIdx(Position.LAST);
+        CheckBox checkBox = new CheckBox(lastCell);
+        checkBox.click();
+        payInvoicesButton.click();
     }
 }
