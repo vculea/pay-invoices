@@ -3,12 +3,14 @@ package ro.easybill;
 public class Customers {
     private String name;
     private String amount;
+    private String date;
     private String type;
     private String address;
 
-    public Customers(String name, String amount, String type, String address) {
+    public Customers(String name, String amount, String date, String type, String address) {
         this.name = name;
         this.amount = amount;
+        this.date = date;
         this.type = type;
         this.address = address;
     }
@@ -19,6 +21,10 @@ public class Customers {
 
     public String getAmount() {
         return amount;
+    }
+
+    public String getDate() {
+        return date;
     }
 
     public String getType() {
@@ -34,6 +40,7 @@ public class Customers {
         return "Customers{" +
                 "name='" + name + '\'' +
                 ", amount='" + amount + '\'' +
+                ", date='" + date + '\'' +
                 ", type='" + type + '\'' +
                 ", address='" + address + '\'' +
                 '}';
