@@ -16,8 +16,8 @@ import static org.hamcrest.core.Is.is;
  * Given I open url "https://apps.easybill.ro/cgi-bin/index.cgi?action=login"
  * And I login on EasyBill using "EMAIL"/"PASSWORD"
  * And I generate receipts for:
- * | name         | amount | address                                    |
- * | Ion Petrescu | 100    | str. Rasaritului nr. 8, ap. 2, Cluj-Napoca |
+ * | name         | amount | date       |address                                    |
+ * | Ion Petrescu | 100    | 2017-01-11 |str. Rasaritului nr. 8, ap. 2, Cluj-Napoca |
  */
 public class EasyBillSteps extends TestBase {
     private static final Logger LOGGER = LoggerFactory.getLogger(EasyBillSteps.class);
@@ -36,5 +36,6 @@ public class EasyBillSteps extends TestBase {
             LOGGER.info("{}", c.toString());
             receiptsView.generateReceiptsForNew(c);
         }
+        driver.get("https://apps.easybill.ro/cgi-bin/index.cgi?action=plugin&mode=facturi&sec=desfasuratorc_frm");
     }
 }

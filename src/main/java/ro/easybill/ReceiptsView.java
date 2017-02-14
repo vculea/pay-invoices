@@ -19,6 +19,7 @@ public class ReceiptsView extends Form {
     private Button emiteButton = new Button().setText("Emite chitanta");
     private TextField periodEl = new TextField().setId("rangepicker");
     private TextField nameEl = new TextField(this).setName("firma");
+    private TextField dataEl = new TextField(this).setName("data_chit");
     private TextField addressEl = new TextField(this).setName("adresa");
     private TextField amountEl = new TextField(this).setName("suma");
     private ComboBox currencyEl = new ComboBox(this).setName("defaultCurrency");
@@ -28,6 +29,8 @@ public class ReceiptsView extends Form {
     private void setCustomer(Customers customer) {
         ready();
         nameEl.setValue(customer.getName());
+        dataEl.setValue(customer.getDate());
+        nameEl.click();
         addressEl.setValue(customer.getAddress());
         amountEl.setValue(customer.getAmount());
         currencyEl.select(customer.getType());
