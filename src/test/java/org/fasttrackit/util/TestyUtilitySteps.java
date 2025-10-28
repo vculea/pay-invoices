@@ -1,13 +1,14 @@
 package org.fasttrackit.util;
 
+import com.sdl.selenium.web.Position;
 import com.sdl.selenium.web.SearchType;
 import com.sdl.selenium.web.WebLocator;
 import com.sdl.selenium.web.button.Button;
 import com.sdl.selenium.web.button.InputButton;
 import com.sdl.selenium.web.form.TextField;
 import com.sdl.selenium.web.link.WebLink;
-import cucumber.api.java.en.Then;
-import cucumber.api.java.en.When;
+import io.cucumber.java.en.Then;
+import io.cucumber.java.en.When;
 
 import java.util.List;
 
@@ -42,8 +43,15 @@ public class TestyUtilitySteps extends TestBase {
 
     @When("^I click on \"([^\"]*)\" button$")
     public void I_click_button(String text) {
-        Button button = new Button().setText(text, SearchType.EQUALS, SearchType.TRIM, SearchType.DEEP_CHILD_NODE_OR_SELF);
+        Button button = new Button().setText(text, SearchType.EQUALS, SearchType.TRIM, SearchType.DEEP_CHILD_NODE_OR_SELF).setResultIdx(Position.LAST);
+        scrollToWebLocator(button);
         button.click();
+    }
+
+    public static void scrollToWebLocator(WebLocator element) {
+        if (element.isPresent()) {
+            WebLocator.getExecutor().executeScript("arguments[0].scrollIntoView(true);", element.currentElement);
+        }
     }
 
     @Then("^I should see an element with text \"([^\"]*)\"$")
