@@ -55,7 +55,7 @@ public class Transcrieri {
     }
 
     public void make(List<Item> items) {
-        String folder = "C:\\Users\\vculea\\Desktop\\Transcrieri";
+        String folder = "C:\\Users\\vculea\\OneDrive - RWS\\Desktop\\Transcrieri";
         boolean exists = Paths.get(folder, items.get(0).file()).toFile().exists();
         programare.click();
         RetryUtils.retry(15, () -> {
@@ -84,14 +84,14 @@ public class Transcrieri {
             oreEl.doClick();
             label3.click(); // Tipul actului de transcris
 
-            typeEachChar(item.name().toUpperCase(), nameSiPrenume, 20);
+            typeEachChar(item.name().toUpperCase(), nameSiPrenume, 65);
             Utils.sleep(50);
-            typeEachChar(item.nr(), nrCertificatCetatenie, 30);
+            typeEachChar(item.nr(), nrCertificatCetatenie, 50);
             selectDate(item);
             taraEl.setValue(item.tara());
             taraTip.click();
             Utils.sleep(20);
-            typeEachChar(item.email(), emailEl, 50);
+            typeEachChar(item.email(), emailEl, 55);
 
             acord1.check(true);
             acord2.check(true);
