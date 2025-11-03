@@ -54,7 +54,7 @@ public class Oblio {
         actualizreSPV.click();
         WebLocator modal = new WebLocator().setId("modal-message");
         Button okBtn = new Button(modal, "OK");
-        okBtn.click();
+        okBtn.doClick();
         int count = table.getCount();
         for (int i = 1; i <= count; i++) {
             Row rowEl = table.getRow(i);
