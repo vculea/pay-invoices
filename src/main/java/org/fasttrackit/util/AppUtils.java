@@ -421,7 +421,7 @@ public class AppUtils {
                 codAbonat = row.split("Cod client:")[1].trim();
             } else if (row.contains("Data emitere:")) {
                 String dataString = list.get(i + 2);
-                date = LocalDate.parse(dataString, DateTimeFormatter.ofPattern("dd/MM/yy"));
+                date = LocalDate.parse(dataString, DateTimeFormatter.ofPattern("dd-MM-yy"));
             }
             if (!total.isEmpty() && !nrFacturii.isEmpty() && !codAbonat.isEmpty() && date != null) {
                 invoice.setValue(total);
