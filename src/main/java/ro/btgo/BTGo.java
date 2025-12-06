@@ -142,15 +142,7 @@ public class BTGo {
                 WebLocator card = new WebLocator().setClasses("card", "flex-row").setChildNodes(nameEl);
                 scrollAndDoClickOn(card);
             } else {
-                WebLocator adaugaBeneficiar = new WebLocator().setClasses("btn-link","add-new-beneficiary-btn");
-                adaugaBeneficiar.click();
-                Utils.sleep(500);
-                TextField nume = new TextField().setId("partnerNameInput");
-                nume.setValue(invoice.getFurnizor());
-                TextField iban = new TextField().setId("ibanInput");
-                iban.setValue(invoice.getIban());
-                iban.sendKeys(Keys.ENTER);
-                iban.scrollIntoView(Go.START);
+                addNewBeneficiary(invoice);
             }
             scrollAndDoClickOn(nextButton);
             TextField sumaEL = new TextField().setId("transferAmountInput");
@@ -194,6 +186,18 @@ public class BTGo {
             success = true;
         }
         return success;
+    }
+
+    private void addNewBeneficiary(Invoice invoice) {
+        WebLocator adaugaBeneficiar = new WebLocator().setClasses("btn-link","add-new-beneficiary-btn");
+        adaugaBeneficiar.click();
+        Utils.sleep(500);
+        TextField name = new TextField().setId("partnerNameInput");
+        name.setValue(invoice.getFurnizor());
+        TextField iban = new TextField().setId("ibanInput");
+        iban.setValue(invoice.getIban());
+        iban.sendKeys(Keys.ENTER);
+        iban.scrollIntoView(Go.START);
     }
 
     private String getExtra(Invoice invoice, String month) {
