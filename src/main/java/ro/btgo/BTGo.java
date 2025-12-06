@@ -43,12 +43,12 @@ public class BTGo {
     private final WebLocator goBack = new WebLocator().setId("historyBackBtn");
     private final TextField descriptionInput = new TextField().setId("descriptionInput");
     private final Button nextButton = new Button().setId("moveForwardBtn");
-    private final WebLocator transfer = new WebLocator().setTag("fba-dashboard-navigation-button").setId("newPaymentBtn");
+    private final WebLocator transfer = new WebLocator().setId("newPaymentBtn");
 
     public void login(String id, String password) {
         TextField idEl = new TextField().setId("user");
         TextField passwordEl = new TextField().setId("password");
-        InputButton logIn = new InputButton().setText("Mergi mai departe");
+        InputButton logIn = new InputButton().setText("Autentifică-te");
         Result<Boolean> result = RetryUtils.retryUntilOneIs(Duration.ofSeconds(40),
                 idEl::isPresent, //1
                 transfer::isPresent //2
@@ -69,10 +69,10 @@ public class BTGo {
     }
 
     public void transferBetweenConts(int value, String fromCont, String toCont) {
-        WebLocator accountDetails = new WebLocator().setTag("fba-account-details");
+        WebLocator accountDetails = new WebLocator().setTag("fba-base-theme");
         accountDetails.ready(Duration.ofSeconds(10));
-        List<String> list = accountDetails.getText().lines().toList();
-        String sumaInCont = list.get(2).replaceAll(",", "");
+        WebLocator sumaEl = new WebLocator(accountDetails).setTag("p").setClasses("poppins-bold","amount");
+        String sumaInCont = sumaEl.getText();
         float tmpValue = Float.parseFloat(sumaInCont);
         int actualValue = (int) tmpValue;
         if (value == 0 || actualValue < value) {
@@ -128,7 +128,8 @@ public class BTGo {
             nrFacturaEl.scrollIntoView(Go.NEAREST);
             scrollAndDoClickOn(nextButton);
         } else {
-            transfer.click();
+            WebLocator plataNoua = new WebLocator(transfer).setClasses("cursor-pointer");
+            plataNoua.click();
             WebLocator transferBani = new WebLocator().setId("selection0Btn");
             transferBani.click();
             WebLocator beneficiar = new WebLocator().setId("partnerSwitch");
@@ -141,8 +142,8 @@ public class BTGo {
                 WebLocator card = new WebLocator().setClasses("card", "flex-row").setChildNodes(nameEl);
                 scrollAndDoClickOn(card);
             } else {
-                WebLink destinatarNou = new WebLink(beneficiar).setClasses("switch-item-1");
-                destinatarNou.click();
+                WebLocator adaugaBeneficiar = new WebLocator().setClasses("btn-link","add-new-beneficiary-btn");
+                adaugaBeneficiar.click();
                 Utils.sleep(500);
                 TextField nume = new TextField().setId("partnerNameInput");
                 nume.setValue(invoice.getFurnizor());
@@ -155,13 +156,11 @@ public class BTGo {
             TextField sumaEL = new TextField().setId("transferAmountInput");
             sumaEL.setValue(invoice.getValue());
             Utils.sleep(1000);
-            descriptionInput.scrollIntoView(Go.CENTER);
+            descriptionInput.scrollIntoView(Go.START);
             descriptionInput.setValue(Strings.isNullOrEmpty(invoice.getNr()) ? invoice.getDescription() : "factura " + invoice.getNr());
             Utils.sleep(500);
             scrollAndDoClickOn(nextButton);
-            WebLocator ibanEl = new WebLocator().setTag("span").setText(invoice.getIban(), SearchType.TRIM);
-            ibanEl.scrollIntoView(Go.START);
-            Utils.sleep(500);
+            Utils.sleep(1500);
             scrollAndDoClickOn(nextButton);
         }
         Utils.sleep(2000); // wait for accept from BTGo
@@ -339,7 +338,5 @@ public class BTGo {
         goHome.scrollIntoView(Go.NEAREST);
         goHome.ready(Duration.ofSeconds(10));
         goHome.doClick();
-        Utils.sleep(1000);
-        RetryUtils.retry(2, goBack::doClick);
     }
 }
