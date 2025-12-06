@@ -189,8 +189,8 @@ public class BTGo {
     }
 
     private void addNewBeneficiary(Invoice invoice) {
-        WebLocator adaugaBeneficiar = new WebLocator().setClasses("btn-link","add-new-beneficiary-btn");
-        adaugaBeneficiar.click();
+        WebLocator addNewBeneficiary = new WebLocator().setClasses("btn-link","add-new-beneficiary-btn");
+        addNewBeneficiary.click();
         Utils.sleep(500);
         TextField name = new TextField().setId("partnerNameInput");
         name.setValue(invoice.getFurnizor());
