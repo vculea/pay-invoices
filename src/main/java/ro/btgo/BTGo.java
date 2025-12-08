@@ -72,7 +72,7 @@ public class BTGo {
         WebLocator accountDetails = new WebLocator().setTag("fba-base-theme");
         accountDetails.ready(Duration.ofSeconds(10));
         WebLocator sumaEl = new WebLocator(accountDetails).setTag("p").setClasses("poppins-bold","amount");
-        String sumaInCont = sumaEl.getText();
+        String sumaInCont = sumaEl.getText().replaceFirst(",", "");
         float tmpValue = Float.parseFloat(sumaInCont);
         int actualValue = (int) tmpValue;
         if (value == 0 || actualValue < value) {
