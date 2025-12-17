@@ -71,13 +71,14 @@ public class BTGo {
     public void transferBetweenConts(int value, String fromCont, String toCont) {
         WebLocator accountDetails = new WebLocator().setTag("fba-base-theme");
         accountDetails.ready(Duration.ofSeconds(10));
-        WebLocator sumaEl = new WebLocator(accountDetails).setTag("p").setClasses("poppins-bold","amount");
+        WebLocator sumaEl = new WebLocator(accountDetails).setTag("p").setClasses("poppins-bold", "amount");
         String sumaInCont = sumaEl.getText().replaceFirst(",", "");
         float tmpValue = Float.parseFloat(sumaInCont);
         int actualValue = (int) tmpValue;
         if (value == 0 || actualValue < value) {
-            WebLocator transfer = new WebLocator().setTag("fba-dashboard-navigation-button").setId("transferInternalBtn");
-            transfer.click();
+            WebLocator transferIntern = new WebLocator().setTag("fba-side-navigation-button").setId("transferInternalBtn");
+            WebLocator transferInternIcon = new WebLocator(transferIntern).setClasses("nav-icon-button");
+            transferInternIcon.click();
             WebLocator container = new WebLocator().setTag("fba-transfer-accounts-container");
             container.scrollIntoView(Go.NEAREST);
             Card cardFromCont = new Card(container, fromCont);
@@ -189,7 +190,7 @@ public class BTGo {
     }
 
     private void addNewBeneficiary(Invoice invoice) {
-        WebLocator addNewBeneficiary = new WebLocator().setClasses("btn-link","add-new-beneficiary-btn");
+        WebLocator addNewBeneficiary = new WebLocator().setClasses("btn-link", "add-new-beneficiary-btn");
         addNewBeneficiary.click();
         Utils.sleep(500);
         TextField name = new TextField().setId("partnerNameInput");

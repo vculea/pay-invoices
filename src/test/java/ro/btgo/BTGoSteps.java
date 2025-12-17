@@ -94,8 +94,11 @@ public class BTGoSteps extends TestBase {
     }
 
     private static int getExtraValue(Invoice invoice) {
-        return invoice.getIban().contains("RNCB") || invoice.getIban().contains("CECE")
-                || invoice.getIban().contains("BACX") || invoice.getIban().contains("RZBR") ? 5 : 1;
+        return invoice.getIban().contains("RNCB")
+                || invoice.getIban().contains("CECE")
+                || invoice.getIban().contains("INGB")
+                || invoice.getIban().contains("BACX")
+                || invoice.getIban().contains("RZBR") ? 5 : 1;
     }
 
     @And("in BTGo I save report from {string} month")
