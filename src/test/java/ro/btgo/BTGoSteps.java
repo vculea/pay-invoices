@@ -66,7 +66,7 @@ public class BTGoSteps extends TestBase {
     public void inBTGoIPayInvoices(List<Invoice> invoices) {
         for (Invoice invoice : invoices) {
             if (!Strings.isNullOrEmpty(invoice.getFileName()) && invoice.getFileName().contains(".pdf")) {
-                File file = new File(facturi2025() + invoice.getFileName());
+                File file = new File(facturi() + invoice.getFileName());
                 String text = FileUtility.getPDFContent(file);
                 List<String> list = text.lines().toList();
                 switch (invoice.getCategory()) {
@@ -81,12 +81,12 @@ public class BTGoSteps extends TestBase {
             int intValue = (int) doubleValue + extraValue;
             btGo.transferBetweenConts(intValue, credentials.getContDeEconomii(), credentials.getContCurent());
 
-            boolean success = btGo.invoicePayment(invoice, dovada2025());
+            boolean success = btGo.invoicePayment(invoice, dovezi());
             if (success) {
                 String fileName = Storage.get("fileName");
-                String facturaFilePath = invoice.getFileName() == null || fileName == null ? null : facturi2025() + invoice.getFileName();
-                String dovadaFilePath = dovada2025() + fileName;
-                String deciziaFilePath = invoice.getDecizia() == null ? null : deciziile2025() + invoice.getDecizia();
+                String facturaFilePath = invoice.getFileName() == null || fileName == null ? null : facturi() + invoice.getFileName();
+                String dovadaFilePath = dovezi() + fileName;
+                String deciziaFilePath = invoice.getDecizia() == null ? null : decizii() + invoice.getDecizia();
                 double value = Double.parseDouble(invoice.getValue());
                 appUtils.uploadFileAndAddRowInFacturiAndContForItem(facturaFilePath, dovadaFilePath, deciziaFilePath, invoice.getCategory(), invoice.getDescription(), value, invoice.getData());
             }
@@ -189,13 +189,13 @@ public class BTGoSteps extends TestBase {
                 LocalDate localDate = LocalDate.now();
                 localDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
                 Invoice invoice = new Invoice(null, null, null, key, String.valueOf(sumForDestination), "Donatie de la " + descriptionString, null, null, beneficiar.beneficiar(), beneficiar.iban(), localDate);
-                boolean successPayment = btGo.invoicePayment(invoice, dovada2025());
+                boolean successPayment = btGo.invoicePayment(invoice, dovezi());
                 if (successPayment) {
                     changeMonthInSheetNew(month, payDistinct, pays, sheetId);
                     String fileName = Storage.get("fileName");
                     double value = Double.parseDouble(String.valueOf(sumForDestination));
                     String category = invoice.getCategory().replaceAll(" ", "") + "Out";
-                    appUtils.uploadFileAndAddRowInFacturiAndContForItem(null, dovada2025() + fileName, null, category, "plata", value, localDate);
+                    appUtils.uploadFileAndAddRowInFacturiAndContForItem(null, dovezi() + fileName, null, category, "plata", value, localDate);
                 }
             }
         }
@@ -239,12 +239,12 @@ public class BTGoSteps extends TestBase {
         btGo.transferBetweenConts(total, credentials.getContDeEconomii(), credentials.getContCurent());
         for (MemberPay memberPay : memberPayList) {
             Invoice invoice = new Invoice(null, null, null, "Sustinere Educatie", memberPay.sum(), memberPay.description(), null, null, memberPay.name(), memberPay.iban(), now);
-            boolean success = btGo.invoicePayment(invoice, dovada2025());
+            boolean success = btGo.invoicePayment(invoice, dovezi());
             if (success) {
                 changeStatusInSheet(memberPay);
                 String fileName = Storage.get("fileName");
                 double value = Double.parseDouble(memberPay.sum());
-                appUtils.uploadFileAndAddRowInFacturiAndContForItem(null, dovada2025() + fileName, null, "Sustinere Educatie", "pentru " + memberPay.name(), value, now);
+                appUtils.uploadFileAndAddRowInFacturiAndContForItem(null, dovezi() + fileName, null, "Sustinere Educatie", "pentru " + memberPay.name(), value, now);
             }
         }
     }
@@ -295,7 +295,7 @@ public class BTGoSteps extends TestBase {
     @And("in BTGo I pay deconts:")
     public void inBTGoIPayDeconts(List<ItemTO> deconts) {
         for (ItemTO item : deconts) {
-            String decontPath = decont2025() + item.getDecont();
+            String decontPath = deconturi() + item.getDecont();
             File file = new File(decontPath);
             Invoice invoice = new Invoice();
             invoice.setCategory(item.getCategory());
@@ -307,10 +307,10 @@ public class BTGoSteps extends TestBase {
                 double doubleValue = Double.parseDouble(invoice.getValue());
                 int intValue = (int) doubleValue + getExtraValue(invoice);
                 btGo.transferBetweenConts(intValue, credentials.getContDeEconomii(), credentials.getContCurent());
-                boolean success = btGo.invoicePayment(invoice, dovada2025());
+                boolean success = btGo.invoicePayment(invoice, dovezi());
                 if (success) {
                     String fileName = Storage.get("fileName");
-                    appUtils.uploadFileAndAddRowInFacturiAndCont(dovada2025() + fileName, item.getDecont());
+                    appUtils.uploadFileAndAddRowInFacturiAndCont(dovezi() + fileName, item.getDecont());
                 }
             }
         }
@@ -318,7 +318,7 @@ public class BTGoSteps extends TestBase {
 
     @And("I upload file {string}")
     public void iUploadFile(String fileName) {
-        String dovadaFilePath = dovada2025() + fileName;
+        String dovadaFilePath = dovezi() + fileName;
         appUtils.uploadFileAndAddRowInFacturiAndCont(dovadaFilePath, "Decont5.pdf");
     }
 

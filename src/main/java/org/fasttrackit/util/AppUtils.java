@@ -35,11 +35,11 @@ public class AppUtils {
 
     private static Sheets sheetsService;
     private final String facturiSheetId = "1SL4EGDDC3qf1X80s32OOEMxmVbvlL7WRbh5Kr88hPy0";
-    private final String contSheetId = "1UMkkX0VPDrRzu8RlLq2wILIx1VEJ5Sv2nQQDEBjEC8o";
-    private final String facturiFolderId = "1g6ySt6dEBEE7YgBpvC9E5VoPGejoq3Fp";// 2025/Facturi
-    private final String eFacturaFolderId = "1RYfZhFf2GUkDggn6LdEGz_BubzaVfbpC";// 2025/Facturi/eFactura
-    private final String deciziileFolderId = "1RMJunfcbwX6nZFPPMCff4Nb6CSaSpqtR";// 2025/Facturi/Deciziile
-    private final String dovadaFolderId = "1K6eKD5GJwUGz9dlOecAOi1OWLkQwKODT";// 2025/Dovada
+    private final String contSheetId = "1mBVRGvUh3cqq-djmZZL5K7_Cy4Gmt0hF-nDW0KfPJLU";
+    private final String facturiFolderId = "145hP8XA7nAJK8k_y-6zsrw2EGG4ui0zs";// 2026/Facturi
+    private final String eFacturiFolderId = "13s36WFgdjMXHqunoUpfQQoAk8BVzQj08";// 2026/eFacturi
+    private final String deciziiFolderId = "1wRD-w80KHwxjljbWLr-wQ42s5FDv4Vv9";// 2026/Decizii
+    private final String doveziFolderId = "1LOpGZSmUXxxs0KLAK9Rv6cwuo7-Cf1q-";// 2026/Dovezi
     private final String extrasCardFolderId = "1bXiP7dmAaasre_6ghEp_vWQUB49R2lgC";// 2025/ExtrasCard
     private final String decontFolderId = "1qSc0ZHUwPoetQZI_j2V61tSqBdlDvEca";// 2025/Decont
 
@@ -61,10 +61,10 @@ public class AppUtils {
         if (hasFactura) {
             facturaLink = uploadFileInDrive(facturaFilePath, facturiFolderId);
         }
-        String dovadaLink = uploadFileInDrive(dovadaFilePath, dovadaFolderId);
+        String dovadaLink = uploadFileInDrive(dovadaFilePath, doveziFolderId);
         String deciziaLink = "";
         if (hasDecizia) {
-            deciziaLink = uploadFileInDrive(deciziaFilePath, deciziileFolderId);
+            deciziaLink = uploadFileInDrive(deciziaFilePath, deciziiFolderId);
         }
         List<Request> requests = new ArrayList<>();
         Result result = addEmptyRowInGoogleSheet(date);
@@ -98,7 +98,7 @@ public class AppUtils {
         List<Request> requests = new ArrayList<>();
         List<Result> results = getRowId(decontName);
         int columnIndex = 9;
-        String dovadaLink = uploadFileInDrive(dovadaFilePath, dovadaFolderId);
+        String dovadaLink = uploadFileInDrive(dovadaFilePath, doveziFolderId);
         for (Result result : results) {
             if (hasDovada) {
                 GoogleSheet.addItemForUpdate("PlataDecont", dovadaLink, ";", result.id(), columnIndex, result.sheetId(), requests);
@@ -119,14 +119,14 @@ public class AppUtils {
     }
 
     @SneakyThrows
-    public void uploadFileAndAddRowInFacturiAndContForItem(ItemTO item, String facturaPath, String deciziilePath, String decontPath) {
+    public void uploadFileAndAddRowInFacturiAndContForItem(ItemTO item, String facturaPath, String deciziaPath, String decontPath) {
         String dataValue = item.getData();
         LocalDate localDate = LocalDate.parse(dataValue, DateTimeFormatter.ofPattern("dd.MM.yyyy"));
         String month = StringUtils.capitalize(localDate.getMonth().getDisplayName(TextStyle.FULL, new Locale("ro", "RO")));
         String linkFactura = uploadFileInDrive(facturaPath + item.getFileName(), facturiFolderId);
-        String linkDeciziile = "";
-        if (!deciziilePath.isEmpty()) {
-            linkDeciziile = uploadFileInDrive(deciziilePath + item.getDecizia(), deciziileFolderId);
+        String linkDecizia = "";
+        if (!deciziaPath.isEmpty()) {
+            linkDecizia = uploadFileInDrive(deciziaPath + item.getDecizia(), deciziiFolderId);
         }
         String linkDecont = "";
         if (!decontPath.isEmpty()) {
@@ -143,8 +143,8 @@ public class AppUtils {
         GoogleSheet.addItemForUpdateV2(value, result.id(), 3, result.sheetId(), requests);
         GoogleSheet.addItemForUpdate(item.getDescription(), result.id(), 4, result.sheetId(), requests);
         GoogleSheet.addItemForUpdate(item.getType(), linkFactura, ";", result.id(), 5, result.sheetId(), requests);
-        if (!deciziilePath.isEmpty()) {
-            GoogleSheet.addItemForUpdate("Decizia", linkDeciziile, ";", result.id(), 6, result.sheetId(), requests);
+        if (!deciziaPath.isEmpty()) {
+            GoogleSheet.addItemForUpdate("Decizia", linkDecizia, ";", result.id(), 6, result.sheetId(), requests);
         }
         if (!decontPath.isEmpty()) {
             String decontName = new java.io.File(item.getDecont()).getName();
@@ -183,8 +183,8 @@ public class AppUtils {
             GoogleSheet.addItemForUpdateFormula("F" + id1 + "+D" + (id1 + 1) + "-E" + (id1 + 1), id1, 5, sheetId1, requests1);
             GoogleSheet.addItemForUpdate(item.getDescription(), id1, 6, sheetId1, requests1);
             GoogleSheet.addItemForUpdate(item.getType(), linkFactura, ";", id1, 7, sheetId1, requests1);
-            if (!deciziilePath.isEmpty()) {
-                GoogleSheet.addItemForUpdate("Decizia", linkDeciziile, ";", id1, 9, sheetId1, requests1);
+            if (!deciziaPath.isEmpty()) {
+                GoogleSheet.addItemForUpdate("Decizia", linkDecizia, ";", id1, 9, sheetId1, requests1);
             }
             if (!decontPath.isEmpty()) {
                 GoogleSheet.addItemForUpdate("Decont", linkDecont, ";", id1, 10, sheetId1, requests1);

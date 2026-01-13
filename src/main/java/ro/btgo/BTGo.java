@@ -267,8 +267,16 @@ public class BTGo {
         endDate.setValue(lastDayOfMonth);
         Button filtering = new Button(filterWindow, "Filtrează", SearchType.TRIM);
         filtering.click();
-        Button export = new Button().setId("exportBtn");
-        export.click();
+        WebLocator typeOfReport = new WebLocator().setId("reportTypeSwitch");
+        WebLocator csvOption = new WebLocator(typeOfReport).setClasses("switch-option-1");
+        csvOption.click();
+        Button generateBtn = new Button().setId("generateReportsBtn");
+        generateBtn.scrollIntoView(Go.CENTER);
+        generateBtn.click();
+        WebLocator download = new WebLocator().setAttribute("data-mat-icon-name", "downloadBulk");
+        download.ready(Duration.ofSeconds(50));
+        download.click();
+        Utils.sleep(2000);
         File file = FileUtility.getFileFromDownload();
         String fileName = file.getName();
         file.renameTo(new File(location + fileName));

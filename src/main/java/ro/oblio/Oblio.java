@@ -105,7 +105,7 @@ public class Oblio {
                             String parent = pdfFile.getAbsolutePath().split(name)[0];
                             File file = new File(parent + index + ".pdf");
                             pdfFile.renameTo(file);
-                            link = appUtils.uploadFileInDrive(file.getAbsolutePath(), appUtils.getEFacturaFolderId());
+                            link = appUtils.uploadFileInDrive(file.getAbsolutePath(), appUtils.getEFacturiFolderId());
                             break;
                         }
                     }

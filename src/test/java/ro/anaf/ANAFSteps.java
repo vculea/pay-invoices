@@ -24,7 +24,7 @@ public class ANAFSteps extends TestBase {
     @And("in ANAF I get all invoices for {int} days")
     public void inANAFIGetAllInvoicesForDays(int days) {
         List<RowRecord> list = Storage.get("items");
-        List<String> files = GoogleSheet.getFiles(appUtils.getEFacturaFolderId());
-        anaf.getAllInvoices(days, list, appUtils.getEFacturaFolderId(), files);
+        List<String> files = GoogleSheet.getFiles(appUtils.getEFacturiFolderId());
+        anaf.getAllInvoices(days, list, appUtils.getEFacturiFolderId(), files);
     }
 }
