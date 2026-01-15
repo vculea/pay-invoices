@@ -65,6 +65,8 @@ public class Oblio {
             for (int i = 1; i <= count; i++) {
                 Row rowEl = table.getRow(i);
                 rowEl.scrollIntoView(Go.CENTER);
+                Cell cell1 = rowEl.getCell(1);
+                String furnizor = cell1.getText().split("\\n")[0].trim();
                 Cell cell2 = rowEl.getCell(2);
                 WebLocator cell2El = new WebLocator(cell2).setTag("p").setClasses("text-sm");
                 String dataEFactura = cell2El.getText();
@@ -77,7 +79,11 @@ public class Oblio {
                     boolean dataEqual = dateInvoice.equals(dateRow);
                     Double val = Double.parseDouble(f.value().replace(".", "").replace(",", "."));
                     boolean isValue = val.equals(suma) || val.equals(suma + 0.01);
-                    return dataEqual && isValue && f.eFactura().isEmpty();
+                    boolean valid = dataEqual ? dataEqual && isValue : isValue;
+                    if (valid) {
+                        log.info("Data: {}-> Value: {}", dataEqual, isValue);
+                    }
+                    return valid && f.eFactura().isEmpty();
                 }).findFirst();
                 if (first.isPresent()) {
                     Cell cell = rowEl.getCell(6);
