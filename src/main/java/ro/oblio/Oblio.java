@@ -28,7 +28,6 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
 
 @Slf4j
@@ -50,7 +49,7 @@ public class Oblio {
 
     @SneakyThrows
     public void getInvoices(List<RowRecord> list) {
-        Integer sheetId = appUtils.getFacturiSheetId("2025");
+        Integer sheetId = appUtils.getFacturiSheetId("2026");
         Table table = new Table().setId("content-table");
         WebLink actualizreSPV = new WebLink(null, "Actualizeaza din SPV", SearchType.DEEP_CHILD_NODE_OR_SELF);
         actualizreSPV.click();
@@ -73,19 +72,12 @@ public class Oblio {
                 String sumaString = cell4.getText().split(" RON")[0].trim();
                 double suma = Double.parseDouble(sumaString);
                 Optional<RowRecord> first = list.stream().filter(f -> {
-                    LocalDate dateInvoice = LocalDate.parse(dataEFactura, DateTimeFormatter.ofPattern("dd.MM.yyyy", new Locale("ro", "RO")));
-                    LocalDate dateRow = LocalDate.parse(f.data(), DateTimeFormatter.ofPattern("dd/MM/yyyy", new Locale("ro", "RO")));
+                    LocalDate dateInvoice = LocalDate.parse(dataEFactura, DateTimeFormatter.ofPattern("dd.MM.yyyy", appUtils.getLocale()));
+                    LocalDate dateRow = LocalDate.parse(f.data(), DateTimeFormatter.ofPattern("dd/MM/yyyy", appUtils.getLocale()));
                     boolean dataEqual = dateInvoice.equals(dateRow);
-                    if (dataEqual) {
-                        Utils.sleep(1);
-                    }
-//                LocalDate dayMinus5 = now.minusDays(5);
-//                LocalDate dayPlus1 = now.plusDays(1);
-//                boolean between = isBetween(data, result.dataEmitere(), result.dataScadenta()) || isBetween(data, dayMinus5, dayPlus1);
                     Double val = Double.parseDouble(f.value().replace(".", "").replace(",", "."));
-//                log.info("val: {}, finalValue: {}, data: {}, dataEFactura: {}, dayMinus1: {}, dayPlus5: {}", val, finalValue, data, dataEFactura, dayMinus5, dayPlus1);
                     boolean isValue = val.equals(suma) || val.equals(suma + 0.01);
-                    return (dataEqual /*|| between*/) && isValue && f.eFactura().isEmpty();
+                    return dataEqual && isValue && f.eFactura().isEmpty();
                 }).findFirst();
                 if (first.isPresent()) {
                     Cell cell = rowEl.getCell(6);

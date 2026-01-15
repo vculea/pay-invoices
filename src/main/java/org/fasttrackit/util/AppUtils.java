@@ -42,6 +42,7 @@ public class AppUtils {
     private final String doveziFolderId = "1LOpGZSmUXxxs0KLAK9Rv6cwuo7-Cf1q-";// 2026/Dovezi
     private final String extrasCardFolderId = "1bXiP7dmAaasre_6ghEp_vWQUB49R2lgC";// 2025/ExtrasCard
     private final String decontFolderId = "1qSc0ZHUwPoetQZI_j2V61tSqBdlDvEca";// 2025/Decont
+    private final Locale locale = new Locale("ro", "RO");
 
     public static void openUrl(String url) {
         LOGGER.info("open {}", url);
@@ -122,7 +123,7 @@ public class AppUtils {
     public void uploadFileAndAddRowInFacturiAndContForItem(ItemTO item, String facturaPath, String deciziaPath, String decontPath) {
         String dataValue = item.getData();
         LocalDate localDate = LocalDate.parse(dataValue, DateTimeFormatter.ofPattern("dd.MM.yyyy"));
-        String month = StringUtils.capitalize(localDate.getMonth().getDisplayName(TextStyle.FULL, new Locale("ro", "RO")));
+        String month = StringUtils.capitalize(localDate.getMonth().getDisplayName(TextStyle.FULL, locale));
         String linkFactura = uploadFileInDrive(facturaPath + item.getFileName(), facturiFolderId);
         String linkDecizia = "";
         if (!deciziaPath.isEmpty()) {

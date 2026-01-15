@@ -2,7 +2,6 @@ package ro.oblio;
 
 import io.cucumber.java.en.And;
 import lombok.extern.slf4j.Slf4j;
-import org.fasttrackit.util.AppUtils;
 import org.fasttrackit.util.TestBase;
 import org.fasttrackit.util.UserCredentials;
 import ro.neo.Storage;
@@ -14,7 +13,6 @@ import java.util.List;
 public class OblioSteps extends TestBase {
 
     private final Oblio oblio = new Oblio();
-    private final AppUtils appUtils = new AppUtils();
     private final UserCredentials credentials = new UserCredentials();
 
     @And("I login in Oblio")

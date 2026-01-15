@@ -27,7 +27,7 @@ public class GoogleSheetSteps extends TestBase {
 
     @And("in Google Sheets I get all items from Factura")
     public void inANAFIGetAllItemsFromFractura() {
-        List<List<Object>> values = appUtils.getValues(appUtils.getFacturiSheetId(), "2025!A1:H");
+        List<List<Object>> values = appUtils.getValues(appUtils.getFacturiSheetId(), "2026!A1:H");
         List<RowRecord> list = values.stream().map(i -> {
             RowRecord rowRecord = new RowRecord(
                     (String) i.get(0),
