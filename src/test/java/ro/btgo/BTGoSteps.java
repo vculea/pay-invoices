@@ -302,8 +302,8 @@ public class BTGoSteps extends TestBase {
             if (file.exists()) {
                 String text = FileUtility.getPDFContent(file);
                 List<String> list = text.lines().toList();
-                invoice = appUtils.collectForDecont(invoice, list);
                 invoice.setDecont(item.getDecont());
+                invoice = appUtils.collectForDecont(invoice, list);
                 double doubleValue = Double.parseDouble(invoice.getValue());
                 int intValue = (int) doubleValue + getExtraValue(invoice);
                 btGo.transferBetweenConts(intValue, credentials.getContDeEconomii(), credentials.getContCurent());

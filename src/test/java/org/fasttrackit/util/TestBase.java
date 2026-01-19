@@ -33,7 +33,7 @@ public abstract class TestBase {
     }
 
     public static String deconturi() {
-        return facturi() + "Deconturi\\";
+        return plati() + "Deconturi\\";
     }
 
     public static String decizii() {

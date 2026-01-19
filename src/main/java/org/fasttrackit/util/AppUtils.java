@@ -259,7 +259,7 @@ public class AppUtils {
                 invoice.setValue(total.replaceAll(",", "."));
                 invoice.setFurnizor(nume);
                 invoice.setIban(iban);
-                invoice.setDescription("conform decont intocmit de " + nume + " in " + data);
+                invoice.setDescription("conf. " + invoice.getDecont().split("\\.")[0] + " intocmit de " + nume);
                 break;
             }
         }

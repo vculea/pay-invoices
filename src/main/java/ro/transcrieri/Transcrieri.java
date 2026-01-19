@@ -57,7 +57,6 @@ public class Transcrieri {
     public void make(List<Item> items) {
         String folder = "C:\\Users\\vculea\\OneDrive - RWS\\Desktop\\Transcrieri";
         boolean exists = Paths.get(folder, items.get(0).file()).toFile().exists();
-        programare.click();
         RetryUtils.retry(15, () -> {
             boolean isVisible = informare.isPresent();
             if (isVisible) {
