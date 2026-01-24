@@ -437,13 +437,13 @@ public class AppUtils {
         }
         for (int i = 0; i < list.size(); i++) {
             String row = list.get(i);
-            if (row.contains("TOTAL PLATA")) { //157.85TOTAL PLATA
-                total = row.split("TOTAL PLATA")[0].trim();
-            } else if (row.contains("Nr. factura")) { //CJL1C000944592Nr. factura
-                nrFacturii = row.split("Nr. factura")[0].trim();
-            } else if (row.contains("Data emitere")) { //Data emitere 2025-08-10
-                String dataString = row.split("Data emitere")[1].trim();
-                date = LocalDate.parse(dataString, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            if (row.contains("Total plata")) { //157.85TOTAL PLATA
+                total = row.split("Total plata")[1].trim().split("RON")[0].trim();
+            } else if (row.contains("Factura ")) { //CJL1C000944592Nr. factura
+                nrFacturii = row.split("Factura ")[1].trim();
+            } else if (row.contains("Data emiterii:")) { //Data emitere 2025-08-10
+                String dataString = row.split("Data emiterii:")[1].trim();
+                date = LocalDate.parse(dataString, DateTimeFormatter.ofPattern("dd.MM.yyyy"));
             }
             if (!total.isEmpty() && !nrFacturii.isEmpty() && date != null) {
                 invoice.setValue(total);
