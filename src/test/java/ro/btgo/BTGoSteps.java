@@ -45,8 +45,7 @@ public class BTGoSteps extends TestBase {
     private static final String facturiSheetId = "1SL4EGDDC3qf1X80s32OOEMxmVbvlL7WRbh5Kr88hPy0";
     private static final String membriCuCopiiiLaGradinitaId = "1uxtyl_NBBHTWnmN7FVF_N5uE43iiqHHG1tDKC4-7ANg";
     private static final String beneficiariId = "1ctmU3ZKJm9u44fvHsfn2IjS1XXNRU6YEFMT6TV_cCvU";
-    private static final String csvFolderId = "1Uc2IebVqTxFSYJSDcnBXdjHCw9ioHDmR"; //2024/CSV
-    private static final String csv2025FolderId = "1lCbGDNT0uY833xkKoMEXLezsa2mDwkqD"; //2025/CSV
+    private static final String csvFolderId = "13rXaVTkYIiD7iKElsjNUmaLXqEzGJE90"; //2025/CSV
     private final BTGo btGo = new BTGo();
     private final AppUtils appUtils = new AppUtils();
     private static List<Pay> pays;
@@ -125,10 +124,10 @@ public class BTGoSteps extends TestBase {
         maiMulte.click();
         String fileName = btGo.saveReport(credentials.getContCurent(), firstDayOfMonth, lastDayOfMonth, csv());
 
-        appUtils.uploadFileInDrive(csv() + fileName, csv2025FolderId);
+        appUtils.uploadFileInDrive(csv() + fileName, csvFolderId);
 
         fileName = btGo.saveReport(credentials.getContDeEconomii(), firstDayOfMonth, lastDayOfMonth, csv());
-        appUtils.uploadFileInDrive(csv() + fileName, csv2025FolderId);
+        appUtils.uploadFileInDrive(csv() + fileName, csvFolderId);
         Utils.sleep(1);
     }
 

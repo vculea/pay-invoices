@@ -32,6 +32,7 @@ import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.format.TextStyle;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -303,7 +304,7 @@ public class BTGo {
             if (!paths.isEmpty()) {
                 return paths;
             } else {
-                return null;
+                return new ArrayList<>();
             }
         });
         Optional<Path> first = list.stream().filter(i -> !Files.isDirectory(i)).findFirst();
