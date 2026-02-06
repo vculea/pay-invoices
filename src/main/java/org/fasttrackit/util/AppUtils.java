@@ -415,14 +415,14 @@ public class AppUtils {
         for (int i = 0; i < list.size(); i++) {
             String row = list.get(i);
             if (row.contains("Total factura")) {
-                total = list.get(i + 4).trim();
+                total = list.get(i + 4).trim().replace(",", ".");
             } else if (row.contains("Numar:")) {
                 nrFacturii = row.split("Numar:")[1].trim();
             } else if (row.contains("Cod client:")) {
                 codAbonat = row.split("Cod client:")[1].trim();
             } else if (row.contains("Data emitere:")) {
                 String dataString = list.get(i + 2);
-                date = LocalDate.parse(dataString, DateTimeFormatter.ofPattern("dd-MM-yy"));
+                date = LocalDate.parse(dataString, DateTimeFormatter.ofPattern("dd.MM.yy"));
             }
             if (!total.isEmpty() && !nrFacturii.isEmpty() && !codAbonat.isEmpty() && date != null) {
                 invoice.setValue(total);
@@ -443,7 +443,7 @@ public class AppUtils {
                 nrFacturii = row.split("Factura ")[1].trim();
             } else if (row.contains("Data emiterii:")) { //Data emitere 2025-08-10
                 String dataString = row.split("Data emiterii:")[1].trim();
-                date = LocalDate.parse(dataString, DateTimeFormatter.ofPattern("dd.MM.yyyy"));
+                date = LocalDate.parse(dataString, DateTimeFormatter.ofPattern("dd.MM.yy"));
             }
             if (!total.isEmpty() && !nrFacturii.isEmpty() && date != null) {
                 invoice.setValue(total);
