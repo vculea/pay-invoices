@@ -97,6 +97,7 @@ public class BTGoSteps extends TestBase {
                 || invoice.getIban().contains("CECE")
                 || invoice.getIban().contains("INGB")
                 || invoice.getIban().contains("BACX")
+                || invoice.getIban().contains("ROIN")
                 || invoice.getIban().contains("RZBR") ? 5 : 1;
     }
 
