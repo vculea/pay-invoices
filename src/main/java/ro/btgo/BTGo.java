@@ -17,6 +17,7 @@ import com.sdl.selenium.web.table.Table;
 import com.sdl.selenium.web.utils.Result;
 import com.sdl.selenium.web.utils.RetryUtils;
 import com.sdl.selenium.web.utils.Utils;
+import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -38,9 +39,11 @@ import java.util.Locale;
 import java.util.Optional;
 
 @Slf4j
+@Getter
 public class BTGo {
     private final Locale roLocale = new Locale("ro", "RO");
     private final WebLink goHome = new WebLink().setId("homeScreenBtn");
+    private final WebLocator homeBtn = new WebLocator().setId("homeBtn");
     private final WebLocator goBack = new WebLocator().setId("historyBackBtn");
     private final TextField descriptionInput = new TextField().setId("descriptionInput");
     private final Button nextButton = new Button().setId("moveForwardBtn");
@@ -281,6 +284,8 @@ public class BTGo {
         File file = FileUtility.getFileFromDownload();
         String fileName = file.getName();
         file.renameTo(new File(location + fileName));
+        goBack.doClick();
+        homeBtn.doClick();
         return fileName;
     }
 
