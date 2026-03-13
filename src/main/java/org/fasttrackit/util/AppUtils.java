@@ -443,7 +443,7 @@ public class AppUtils {
                 nrFacturii = row.split("Factura ")[1].trim();
             } else if (row.contains("Data emiterii:")) { //Data emitere 2025-08-10
                 String dataString = row.split("Data emiterii:")[1].trim();
-                date = LocalDate.parse(dataString, DateTimeFormatter.ofPattern("dd.MM.yy"));
+                date = LocalDate.parse(dataString, DateTimeFormatter.ofPattern("dd.MM.yyyy"));
             }
             if (!total.isEmpty() && !nrFacturii.isEmpty() && date != null) {
                 invoice.setValue(total);
