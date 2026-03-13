@@ -49,6 +49,7 @@ public class BTGoSteps extends TestBase {
     private final BTGo btGo = new BTGo();
     private final AppUtils appUtils = new AppUtils();
     private static List<Pay> pays;
+    private static List<Pay> allPays;
     private static List<MemberPay> memberPays;
     private static Sheets sheetsService;
     private final Locale roLocale = new Locale("ro", "RO");
@@ -138,13 +139,14 @@ public class BTGoSteps extends TestBase {
         sheetsService = GoogleSheet.getSheetsService();
         ValueRange valueRange = sheetsService.spreadsheets().values().get(contracteDeSponsorizareId, "Donatii cu destinatie speciala New" + "!B2:F").execute();
         List<List<Object>> values = valueRange.getValues();
-        pays = values.stream().map(i -> new Pay(
-                        i.get(0).toString(),
-                        i.get(1).toString(),
-                        i.get(2).toString(),
-                        i.get(3).toString(),
-                        i.get(4).toString()
-                )).filter(i -> !Strings.isNullOrEmpty(i.destination()))
+        allPays = values.stream().map(i -> new Pay(
+                i.get(0).toString(),
+                i.get(1).toString(),
+                i.get(2).toString(),
+                i.get(3).toString(),
+                i.get(4).toString()
+        )).filter(i -> !Strings.isNullOrEmpty(i.destination())).toList();
+        pays = allPays.stream()
                 .filter(i -> Integer.parseInt(i.suma()) > 0)
                 .toList();
     }
@@ -191,7 +193,7 @@ public class BTGoSteps extends TestBase {
                 Invoice invoice = new Invoice(null, null, null, key, String.valueOf(sumForDestination), "Donatie de la " + descriptionString, null, null, beneficiar.beneficiar(), beneficiar.iban(), localDate);
                 boolean successPayment = btGo.invoicePayment(invoice, dovezi());
                 if (successPayment) {
-                    changeMonthInSheetNew(month, payDistinct, pays, sheetId);
+                    changeMonthInSheetNew(month, payDistinct, allPays, sheetId);
                     String fileName = Storage.get("fileName");
                     double value = Double.parseDouble(String.valueOf(sumForDestination));
                     String category = invoice.getCategory().replaceAll(" ", "") + "Out";
