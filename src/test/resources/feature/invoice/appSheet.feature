@@ -23,7 +23,7 @@ Feature: App Sheet Invoices
     And in AppSheet I edit following values:
       | name           | category   | subcategory | price   | payment | date       |
 #      | Lild | Cheltuieli | Alimentare  | 12.5  | Card    | 08/20/2025 18:00 |
-#      | Rata Noiembrie | Cheltuieli | Rata        | 2137.30 | Card    | 11/15/2025 |
-#      | Rata Decembrie | Cheltuieli | Rata        | 2095.11 | Card    | 12/15/2025 |
-      | Rata Ianuarie  | Cheltuieli | Rata        | 2127.51 | Card    | 01/15/2026 |
-      | Rata Februarie | Cheltuieli | Rata        | 2159.62 | Card    | 02/15/2026 |
+      | Rata Februarie | Cheltuieli | Rata        | 1924.67 | Card    | 02/15/2026 |
+      | Rata Martie    | Cheltuieli | Rata        | 1829.22 | Card    | 03/15/2026 |
+      | Rata Aprilie   | Cheltuieli | Rata        | 1915.67 | Card    | 04/15/2026 |
+      | Rata Mai       | Cheltuieli | Rata        | 1881.15 | Card    | 05/15/2026 |
