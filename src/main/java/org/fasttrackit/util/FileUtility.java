@@ -2,7 +2,7 @@ package org.fasttrackit.util;
 
 import com.google.common.base.Strings;
 import com.sdl.selenium.utils.config.WebDriverConfig;
-import com.sdl.selenium.web.utils.RetryUtils;
+import com.sdl.selenium.web.utils.Retry;
 import com.sdl.selenium.web.utils.Utils;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -37,7 +37,7 @@ public class FileUtility {
 
     public static File getFileFromDownload(String fileName) {
         Utils.sleep(500);
-        List<Path> list = RetryUtils.retry(Duration.ofSeconds(40), () -> {
+        List<Path> list = Retry.retry(Duration.ofSeconds(40), () -> {
             List<Path> paths = Files.list(Paths.get(WebDriverConfig.getDownloadPath())).toList();
             if (!paths.isEmpty()) {
                 boolean present = paths.stream().anyMatch(i -> !i.toFile().getName().contains(".crdownload"));

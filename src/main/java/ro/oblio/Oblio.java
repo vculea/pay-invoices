@@ -79,7 +79,10 @@ public class Oblio {
                     LocalDate dateRow = LocalDate.parse(f.data(), DateTimeFormatter.ofPattern("dd/MM/yyyy", appUtils.getLocale()));
                     boolean dataEqual = dateInvoice.equals(dateRow);
                     Double val = Double.parseDouble(f.value().replace(".", "").replace(",", "."));
-                    boolean isValue = val.equals(suma) || val.equals(suma + 0.01);
+                    boolean isValue = val.equals(suma) || val.equals(suma + 0.01) && dataEqual;
+                    if (isValue) {
+                        Utils.sleep(1);
+                    }
                     boolean valid = dataEqual ? dataEqual && isValue : isValue;
                     if (valid) {
                         log.info("Data: {}-> Value: {}", dataEqual, isValue);
@@ -106,6 +109,7 @@ public class Oblio {
                                 File file = new File(parent + index + ".pdf");
                                 pdfFile.renameTo(file);
                                 link = appUtils.uploadFileInDrive(file.getAbsolutePath(), appUtils.getEFacturiFolderId());
+                                file.delete();
                                 break;
                             }
                         }
