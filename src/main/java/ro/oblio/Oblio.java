@@ -3,6 +3,7 @@ package ro.oblio;
 import com.google.api.services.sheets.v4.model.BatchUpdateSpreadsheetRequest;
 import com.google.api.services.sheets.v4.model.BatchUpdateSpreadsheetResponse;
 import com.google.api.services.sheets.v4.model.Request;
+import com.google.common.base.Strings;
 import com.sdl.selenium.Go;
 import com.sdl.selenium.web.SearchType;
 import com.sdl.selenium.web.WebLocator;
@@ -35,7 +36,7 @@ public class Oblio {
     private final AppUtils appUtils = new AppUtils();
 
     public void login(String email, String pass) {
-        Button acceptCookie = new Button().setId("CybotCookiebotDialogBodyButtonAccept");
+        Button acceptCookie = new Button().setId("CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll");
         if (acceptCookie.isPresent()) {
             acceptCookie.click();
         }
@@ -78,49 +79,60 @@ public class Oblio {
                     LocalDate dateRow = LocalDate.parse(f.data(), DateTimeFormatter.ofPattern("dd/MM/yyyy", appUtils.getLocale()));
                     boolean dataEqual = dateInvoice.equals(dateRow);
                     Double val = Double.parseDouble(f.value().replace(".", "").replace(",", "."));
-                    boolean isValue = val.equals(suma) || val.equals(suma + 0.01);
+                    boolean isValue = val.equals(suma) || val.equals(suma + 0.01) && dataEqual;
+                    if (isValue) {
+                        Utils.sleep(1);
+                    }
                     boolean valid = dataEqual ? dataEqual && isValue : isValue;
                     if (valid) {
                         log.info("Data: {}-> Value: {}", dataEqual, isValue);
                     }
-                    return valid && f.eFactura().isEmpty();
+                    return valid; // && f.eFactura().isEmpty();
                 }).findFirst();
                 if (first.isPresent()) {
-                    Cell cell = rowEl.getCell(6);
-                    WebLink download = new WebLink(cell);
-                    download.click();
-                    WebLink export = new WebLink(rowEl, "Vizualizeaza Document");
-                    export.click();
-                    Utils.sleep(2000);
-                    File pdfFile = FileUtility.getFileFromDownload();
-                    String content = FileUtility.getPDFContent(pdfFile);
-                    List<String> rows = content.lines().toList();
-                    String link = "";
-                    for (String row : rows) {
-                        if (row.contains("Index descarcare: ")) {
-                            String index = row.split("Index descarcare: ")[1].trim();
-                            String name = pdfFile.getName();
-                            String parent = pdfFile.getAbsolutePath().split(name)[0];
-                            File file = new File(parent + index + ".pdf");
-                            pdfFile.renameTo(file);
-                            link = appUtils.uploadFileInDrive(file.getAbsolutePath(), appUtils.getEFacturiFolderId());
-                            break;
+                    if (Strings.isNullOrEmpty(first.get().eFactura())) {
+                        Cell cell = rowEl.getCell(6);
+                        WebLink download = new WebLink(cell);
+                        download.click();
+                        WebLink export = new WebLink(rowEl, "Vizualizeaza Document");
+                        export.click();
+                        Utils.sleep(2000);
+                        File pdfFile = FileUtility.getFileFromDownload();
+                        String content = FileUtility.getPDFContent(pdfFile);
+                        List<String> rows = content.lines().toList();
+                        String link = "";
+                        for (String row : rows) {
+                            if (row.contains("Index descarcare: ")) {
+                                String index = row.split("Index descarcare: ")[1].trim();
+                                String name = pdfFile.getName();
+                                String parent = pdfFile.getAbsolutePath().split(name)[0];
+                                File file = new File(parent + index + ".pdf");
+                                pdfFile.renameTo(file);
+                                link = appUtils.uploadFileInDrive(file.getAbsolutePath(), appUtils.getEFacturiFolderId());
+                                file.delete();
+                                break;
+                            }
                         }
-                    }
-                    RowRecord findRow = first.get();
-                    if (findRow.eFactura().isEmpty()) {
-                        int index = list.indexOf(findRow);
-                        List<Request> requests = new ArrayList<>();
-                        GoogleSheet.addItemForUpdate("eFactura", link, ";", index + 1, 7, sheetId, requests);
-                        BatchUpdateSpreadsheetRequest batchUpdateRequest = new BatchUpdateSpreadsheetRequest().setRequests(requests);
-                        BatchUpdateSpreadsheetResponse response = appUtils.getSheetsService().spreadsheets().batchUpdate(appUtils.getFacturiSheetId(), batchUpdateRequest).execute();
-                        RowRecord rowRecord = new RowRecord(findRow.category(), findRow.method(), findRow.data(), findRow.value(), findRow.description(), findRow.link(), findRow.dovada(), "eFactura");
-                        try {
-                            list.set(index, rowRecord);
-                        } catch (UnsupportedOperationException e) {
-                            list.add(rowRecord);
+                        RowRecord findRow = first.get();
+                        if (findRow.eFactura().isEmpty()) {
+                            int index = list.indexOf(findRow);
+                            List<Request> requests = new ArrayList<>();
+                            GoogleSheet.addItemForUpdate("eFactura", link, ";", index + 1, 7, sheetId, requests);
+                            BatchUpdateSpreadsheetRequest batchUpdateRequest = new BatchUpdateSpreadsheetRequest().setRequests(requests);
+                            BatchUpdateSpreadsheetResponse response = appUtils.getSheetsService().spreadsheets().batchUpdate(appUtils.getFacturiSheetId(), batchUpdateRequest).execute();
+                            RowRecord rowRecord = new RowRecord(findRow.category(), findRow.method(), findRow.data(), findRow.value(), findRow.description(), findRow.link(), findRow.dovada(), "eFactura");
+                            try {
+                                list.set(index, rowRecord);
+                            } catch (UnsupportedOperationException e) {
+                                list.add(rowRecord);
+                            }
                         }
+                    } else {
+                        Utils.sleep(1);
+//                        log.info("Factura already has eFactura link: {}", first.get().eFactura());
                     }
+                } else {
+                    Utils.sleep(1);
                 }
             }
             next++;

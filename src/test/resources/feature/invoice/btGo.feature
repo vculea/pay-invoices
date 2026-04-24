@@ -42,16 +42,17 @@ Feature: As a Customer I pay all my invoices
 #    And I open url "https://goapp.bancatransilvania.ro/app/auth/login"
 #    And I login in BTGo
 #    And in BTGo I pay invoices:
-#      | fileName                | decizia               | category                | value    | furnizor                              | description                                   | iban                     |
+#      | fileName                  | decizia | category   | value   | furnizor                 | description                                | iban                     |
 #      | ContractDeDonatie16.pdf | Decizie comitet52.pdf | Sustinere alte biserici | 20000.00 | Biserica Baptista Emanuel din Beclean | Donatie cf contract donatie 16 din 26.03.2026 | RO17RNCB0039014569740001 |
-#      | ContractDeDonatieRazeDeSoare11.pdf |         | RazeDeSoareOut | 1500.00 | Asociația Raza de soare in sate | Donatie cf contract donatie 11 din 20.10.2026 | RO42RNCB01621219465800001 |
+#      | ContractDeDonatie17.pdf |         | RazeDeSoareOut | 5000.00 | Asociația Raza de soare in sate | Donatie cf contract donatie 17 din 06.04.2026 | RO42RNCB0162121946580001 |
+#      | ContractDeDonatie18Or.pdf |         | Alimentare | 7400.00 | Asociația Actiunea Felix | cf contract sponsorizare 59 din 16.04.2026 | RO30CECEBH0143RON0496616 |
 #      | Contract de donatie nr10 din 2026.08.08.pdf | Decizie comitet donatie6.pdf | Adolescenti | 8000.00 | Asociația Raza Soarelui-Sunlight | Donatie conform contract donatie 10 din 08.08.2026 | RO23RZBR0000060003200106 |
 #      | DispozitieDePlata24.pdf | Decizie comitet donatie7.pdf | DonatiiOut | 4357.30 | Comunitatea Bisericilor Creștine Baptiste Suceava | pentru sinistratii din Suceava-Neamt | RO38RNCB0234037009660015 |
 #      | ContractDeDonatie13.pdf | Decizie comitet donatie10.pdf | Femei    | 1500.00 | Asociatia Mops Cluj | Donatie     | RO72BTRLRONCRT0642499201 |
 #      | ContractDeDonatie13.pdf |         | Copiii   | 650.00 | Fundatia Romania Pro-Culture | Donatie     | RO58INGB0001008170958910 |
 #      | Sustinere familii | 10000 | Asociatia pentru Integritatea Familiei | Donatie pentru Marius Cruceru | RO18BTRLRONCRT0320656501 |
 #      | ProVitaOut | 1000  | Fundatia Clinica Pro-vita | Donatie pentru Marsul pt Viata | RO98BTRL01301205R83319XX |
-#      | Contract de donatie nr.15 din 2026.02.03.pdf |         | ProVitaOut | 1000  | Fundatia Clinica Pro-vita | Donatie cnf. contract 15 din 03.02.2026 | RO98BTRL01301205R83319XX |
+#      | ContractDeDonatie18.pdf | Decizie comitet55.pdf | ProVitaOut | 2000.00 | Fundatia Clinica Pro-vita | Donatie cnf. contract 18 din 10.03.2026 | RO98BTRL01301205R83319XX |
 #      |          | RVE      | 2000  | Asociatia RADIO VOCEA EVANGHELIEI sucursala Cluj | donatie     | RO38RNCB0106026613860001 |
 #      | Decizie comitet donatie2.pdf | CredoTV  | 10000.00 | ASOCIATIA CREDO TELEVISION NETWORK | donatie     | RO28RNCB0074029224060001 |
 #      |          |         | SeerRomania | 500   | Fundatia Seer Romania | donatie     | RO65BTRL03201205226788XX |
@@ -63,9 +64,9 @@ Feature: As a Customer I pay all my invoices
 #    And I login in BTGo
 #    And in BTGo I pay invoices:
 #      | fileName      | category |
-#      | Factura58.pdf | Apa      |
+#      | Factura91.pdf | Apa      |
 #      | FacturaGazFeb.pdf | Gaz      |
-#      | Factura59.pdf | Gunoi    |
+#      | Factura90.pdf | Gunoi    |
 
 #  Scenario: Generate extras conturi in BTGo
 #    And I open url "https://goapp.bancatransilvania.ro/app/auth/login"
@@ -101,7 +102,7 @@ Feature: As a Customer I pay all my invoices
 
 #  Scenario: Add facturile sau bonuri in google sheets
 #    And I add in Facturi or Bonuri in google sheet:
-#      | fileName      | decizia | decont | type    | plata | category | data       | value   | description    |
+#      | fileName      | decizia | decont | type    | plata | category  | data       | value  | description           |
 #      | DovadaPlataSomething NewDecembrie.pdf   | Dovada | Cont  | SomethingNewOut  | 13.12.2024 | 371   | plata       |
 #      | DovadaPlataTeenChallengeDecembrie.pdf  | Dovada | Cont  | TeenChallengeOut | 13.12.2024 | 100   | plata       |
 #      | DovadaPlataCasaFilipDecembrie.pdf      | Dovada | Cont  | CasaFilipOut     | 13.12.2024 | 200   | plata       |
@@ -120,13 +121,14 @@ Feature: As a Customer I pay all my invoices
 #      | Factura73.pdf | Factura | Cash  | Femei    | 02.04.2026 | 40.00  | Panglica Momco            |
 #      | Factura45.pdf |         |        | Factura    | Cont  | Femei      | 01.03.2026 | 1630.00 | Produse pentru intalnirea femeilor |
 #      | Factura48.pdf |         |        | Bon cu CUI | Cont  | Femei      | 28.02.2026 | 160.00  | Flori invitata                     |
-#      | Factura60.pdf |         | Decont9.pdf | Factura | Cash  | Tehnic   | 13.03.2026 | 45.00 | Corzi chitara (Saron) |
+#      | Factura85.pdf |         |        | Factura | Cash  | Tehnic   | 07.04.2026 | 65.97  | Cablu USB-c      |
+#      | Factura86.pdf |         |        | Factura | Cash  | Tehnic   | 07.04.2026 | 181.50 | Incarcator USB-c |
 #      | Factura73.pdf |         |        | Factura | Cont  | Dotari   | 24.03.2026 | 299.99 | Camera de supraveghere         |
 #      | Factura34.pdf |         |        | Factura    | Cont  | Recunostinta | 14.02.2026 | 200.00  | flori pentru invitata            |
 #      | Factura62.pdf |         |        | Factura    | Cash  | Conferinta | 16.03.2026 | 182.40 | cheltuieli cu invitat (Florin) |
 #      | Factura64.pdf |         |        | Bon cu CUI | Cont  | Conferinta | 12.03.2026 | 259.00 | Mancare cu invitat             |
 #      | Factura65.pdf |         |        | Bon cu CUI | Cont  | Conferinta | 12.03.2026 | 280.65 | Transport la Braila            |
-#      | Factura66.pdf |         |        | Factura    | Cont  | Conferinta | 12.03.2026 | 699.11 | Transport de la Braila         |
+#      | Factura92.pdf |         |        | Factura | Cont  | Conferinta | 10.04.2026 | 480.30 | Transport de la Braila |
 #      | Factura90.pdf |            |        | Factura | Cash  | Femei    | 30.04.2026 | 149.75 | Plasturi    |
 #      | Factura94.pdf | ExtrasCard4.pdf | Decont2.pdf | Factura | Cash  | IesireaBiserica | 01.05.2026 | 72.88 | Produse pentru iesire |
 #      | Factura92.pdf |            |        | Chitanta | Cash  | IesireaBiserica | 02.05.2026 | 3500.00 | Donatie Fundatia Emanuel |
@@ -136,14 +138,16 @@ Feature: As a Customer I pay all my invoices
 #      | DispozitieDePlata69.pdf | Decizie comitet48.pdf |        | Factura | Cash  | Invitati | 09.01.2026 | 900.00 | Emi Ciupe    |
 #      | DispozitieDePlata70.pdf | Decizie comitet48.pdf |        | Factura | Cash  | Invitati | 10.01.2026 | 600.00 | Claudiu Pop  |
 #      | DispozitieDePlata81.pdf |         |        | DdP  | Cash  | Adolescenti | 22.03.2026 | 250.00 | pentru Emi Ciupe |
-#      | Factura51.pdf |         |        | Factura | Cont  | Alimentare | 04.03.2026 | 443.70 | Lapte si Cafea              |
+#      | Factura94.pdf |         |        | Factura | Cont  | Alimentare | 15.04.2026 | 770.00 | Produse de la Panemar |
 #      | Factura5.pdf         |         |        | Factura | Cont  | Alimentare | 09.01.2026 | 535.53  | Pizza              |
 #      | Factura282.pdf          |         |        | Factura | Cont  | Alimentare   | 27.12.2026 | 117.95  | Micro Revelion |
 #      | Factura283.pdf          |         |        | Factura | Cont  | Alimentare   | 28.12.2026 | 3475.23 | Micro Revelion |
 #      | Factura284.pdf          |         |        | Factura | Cont  | Recunostinta | 27.12.2026 | 205.00  | Micro Revelion |
 #      | Factura37.pdf |         | Decont7.pdf | Bon cu CUI | Cont  | Copiii   | 21.02.2026 | 52.45 | Materiale grupa copii (Dani) |
-#      | Factura35.pdf |         |        | Factura | Cash  | Copiii   | 16.02.2026 | 55.00 | Premii copii (Catalina) |
-#      | Factura69.pdf |         | Decont11.pdf | Factura    | Cont  | Copiii      | 20.03.2026 | 47.43  | Pentru grupa copiilor (Raluca) |
+#      | Factura78.pdf |         |        | Factura | Cont  | Copiii     | 03.04.2026 | 674.67 | Premii copii       |
+#      | Factura82.pdf |         |        | Factura | Cont  | Copiii     | 07.04.2026 | 246.26 | Pentru copii       |
+#      | Factura83.pdf |         |        | Factura | Cont  | Copiii     | 07.04.2026 | 181.09 | Pentru copii       |
+#      | Factura84.pdf |         |        | Factura | Cont  | Copiii     | 04.04.2026 | 35.00  | Pentru copii       |
 #      | Factura274.pdf |         |        | Factura | Cont  | Recunostinta | 19.12.2026 | 232.09 | Produse     |
 #      | Factura275.pdf |         |        | Factura | Cont  | Recunostinta | 20.12.2026 | 210.77 | Produse     |
 #      | Factura276.pdf |         |        | Factura | Cont  | Recunostinta | 20.12.2026 | 95.27  | Produse     |
@@ -152,28 +156,28 @@ Feature: As a Customer I pay all my invoices
 #      | Factura262.pdf |         |        | Factura    | Cont  | Adolescenti | 09.12.2026 | 120.93  | Produse                 |
 #      | Factura18.pdf |         | Decont3.pdf | Bon cu CUI | Cont  | Adolescenti | 06.02.2026 | 400.00 | Activitati adolescenti     |
 #      | Factura248.pdf |         | Decont22.pdf | Factura | Cont  | Decor    | 07.12.2026 | 284.00 | Instalatii led (Dana Copaciu) |
-#      | Factura44.pdf |         |        | Bon cu CUI | Cash  | Deplasari | 02.03.2026 | 440.06 | Drum Ilva (Florin) |
+#      | Factura95.pdf |         |        | Factura | Cash  | Deplasari | 19.04.2026 | 799.99 | Drum Capalna (Florin) |
 #      | Factura19.pdf |         | Decont4.pdf | Factura    | Cash  | Sanitare    | 07.02.2026 | 199.07 | Produse sanitare (Andreea) |
 #      | Factura67.pdf |         |              | Factura    | Cash  | Sanitare    | 16.03.2026 | 271.04 | Prosoape (Doru)                |
-#      | Factura68.pdf |         |              | Factura    | Cash  | Sanitare    | 16.03.2026 | 58.28  | Saci (Doru)                    |
-#      | Factura28.pdf |         |        | Factura    | Cont  | Alimentare   | 11.02.2026 | 210.27  | Produse pentru intalnirea din 15 |
-#      | Factura29.pdf |         |        | Factura    | Cash  | Alimentare   | 12.02.2026 | 52.47   | Zahar (Doru)                     |
+#      | Factura96.pdf |         |        | Factura | Cash  | Sanitare  | 16.04.2026 | 380.83 | Produse (Doru)        |
+#      | Factura79.pdf |         |        | Factura | Cash  | Alimentare | 03.04.2026 | 592.42 | Mancare comitet    |
+#      | Factura80.pdf |         |        | Factura | Cont  | Alimentare | 02.04.2026 | 545.14 | Produse alimentare |
+#      | Factura81.pdf |         |        | Factura | Cont  | Alimentare | 02.04.2026 | 373.00 | Pizza comitet      |
 #      | Factura74.pdf |         |        | Factura | Cont  | Diverse  | 26.03.2026 | 1381.82 | Cod Lei        |
 #      | Factura75.pdf |         |        | Factura | Cont  | Diverse  | 26.03.2026 | 100.00  | Zoom (54.45$)  |
 #      | Factura76.pdf |         |        | Factura | Cont  | Diverse  | 26.03.2026 | 100.00  | Zoom (129.96$) |
 #      | Factura198.pdf |         |        | Factura | Cont  | Sanitare | 11.09.2026 | 1117.62 | Produse pentru curatenie |
 #      | Factura21.pdf |         |        | Factura | Cont  | Tiparituri | 06.02.2026 | 501.00 | Rencarcarea cartuselor |
-#      | Factura249.pdf |         | Decont23.pdf | Factura | Cont  | Femei    | 06.12.2026 | 806.02 | Produse pentru Femei (A.Sainiuc) |
+#      | Factura97.pdf |         |        | Factura | Cont  | Femei     | 17.04.2026 | 177.00 | Produse pentru Momco  |
 #      | Factura250.pdf |         | Decont23.pdf | Factura | Cont  | Femei    | 06.12.2026 | 401.93 | Produse pentru Femei (A.Sainiuc) |
 #      | Factura247.pdf          |         |        | Bon cu CUI | Cash  | Femei         | 07.12.2026 | 122.97  | Produse pentru Femei   |
 #      | Factura32.pdf |         |        | Factura    | Cont  | Alimentare   | 15.02.2026 | 1272.07 | Pizza pentru intalnirea din 15   |
-#      | Factura33.pdf |         |        | Factura    | Cont  | Alimentare   | 15.02.2026 | 894.00  | Platouri                         |
 #      | Factura167.pdf |            |        | Factura | Cash  | Sanitare    | 10.08.2026 | 99.05  | Domestos (Doru)             |
 #      | Factura234.pdf |         | Decont20.pdf | Bon cu CUI | Cont  | Adolescenti | 06.11.2026 | 62.90  | Produse adolescenti |
 #      | Factura242.pdf |         |        | Factura | Cont  | Adolescenti | 05.12.2026 | 99.55 | Mancare adolescenti |
 #      | Factura211.pdf |         | Decont13.pdf | Factura | Cash  | Adolescenti | 18.09.2026 | 236.82 | Mancare adolescenti (Damaris) |
 #      | Factura77.pdf | Factura    | Cash  | Comunitate  | 03.04.2026 | 400.00 | Slujire pentru comunitate (Florin) |
-#      | Factura112.pdf          | ExtrasCard10.pdf                                    |        | Factura | Cash  | Femei      | 07.06.2026 | 503.99 | Produse pentru Momco (Ovidu)     |
+#      | Factura77.pdf |         |        | Factura | Cont  | Femei    | 28.01.2026 | 307.84 | Produse pentru Momco |
 #      | Factura115.pdf          | ExtrasCard11.pdf                                    |        | Factura | Cont  | Femei      | 04.06.2026 | 735.00 | Produse pentru Momco             |
 #      | Factura63.pdf |         |        | Bon cu CUI | Cash  | Tineri     | 16.03.2026 | 135.86 | produse tineri (Ovidiu)        |
 #      | Factura30.pdf |         |        | Bon cu CUI | Cash  | Copiii       | 13.02.2026 | 60.00   | produse pentru grupa (Valentina) |

@@ -15,6 +15,7 @@ import com.sdl.selenium.web.form.TextField;
 import com.sdl.selenium.web.link.WebLink;
 import com.sdl.selenium.web.table.Table;
 import com.sdl.selenium.web.utils.Result;
+import com.sdl.selenium.web.utils.Retry;
 import com.sdl.selenium.web.utils.RetryUtils;
 import com.sdl.selenium.web.utils.Utils;
 import lombok.Getter;
@@ -151,7 +152,7 @@ public class BTGo {
             }
             scrollAndDoClickOn(nextButton);
             TextField sumaEL = new TextField().setId("transferAmountInput");
-            sumaEL.setValue(invoice.getValue());
+            Retry.retry(2, () -> sumaEL.setValue(invoice.getValue()));
             Utils.sleep(1000);
             descriptionInput.scrollIntoView(Go.START);
             descriptionInput.setValue(Strings.isNullOrEmpty(invoice.getNr()) ? invoice.getDescription() : "factura " + invoice.getNr());

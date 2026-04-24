@@ -9,7 +9,7 @@ import com.sdl.selenium.web.form.CheckBox;
 import com.sdl.selenium.web.form.ComboBox;
 import com.sdl.selenium.web.form.TextField;
 import com.sdl.selenium.web.link.WebLink;
-import com.sdl.selenium.web.utils.RetryUtils;
+import com.sdl.selenium.web.utils.Retry;
 import com.sdl.selenium.web.utils.Utils;
 import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.JavascriptExecutor;
@@ -57,7 +57,7 @@ public class Transcrieri {
     public void make(List<Item> items) {
         String folder = "C:\\Users\\vculea\\OneDrive - RWS\\Desktop\\Transcrieri";
         boolean exists = Paths.get(folder, items.get(0).file()).toFile().exists();
-        RetryUtils.retry(15, () -> {
+        Retry.retry(15, () -> {
             boolean isVisible = informare.isPresent();
             if (isVisible) {
                 close.click();
@@ -65,7 +65,7 @@ public class Transcrieri {
             return isVisible;
         });
         for (Item item : items) {
-            RetryUtils.retry(3, () -> {
+            Retry.retry(3, () -> {
                 dayEl.click();
                 boolean success;
                 boolean isVisible = informare.isPresent();
@@ -119,7 +119,7 @@ public class Transcrieri {
         String day = now.getDayOfMonth() + "";
         WebLocator dayCalendarEl = new WebLocator().setTag("td").setAttribute("data-handler", "selectDay");
         WebLink dayEl = new WebLink(dayCalendarEl).setText(day).setClasses("ui-state-default");
-        RetryUtils.retry(2, dayEl::doClick);
+        Retry.retry(2, dayEl::doClick);
     }
 
     private static void typeEachChar(String value, TextField textField, int delay) {
