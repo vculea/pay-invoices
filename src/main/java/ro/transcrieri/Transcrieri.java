@@ -79,13 +79,13 @@ public class Transcrieri {
                 return success;
             });
 
-            oreEl.setResultIdx(5); // 1-8
+            oreEl.setResultIdx(7); // 1-8
             oreEl.doClick();
             label3.click(); // Tipul actului de transcris
 
             typeEachChar(item.name().toUpperCase(), nameSiPrenume, 65);
-            Utils.sleep(80);
-            typeEachChar(item.nr(), nrCertificatCetatenie, 50);
+            Utils.sleep(90);
+            typeEachChar(item.nr(), nrCertificatCetatenie, 55);
             selectDate(item);
             taraEl.setValue(item.tara());
             taraTip.click();
