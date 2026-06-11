@@ -359,10 +359,12 @@ public class AppUtils {
                 codAbonat = row.split("Cod încasare:")[1].trim();
             }
             if (!total.isEmpty() && !nrFacturii.isEmpty() && !codAbonat.isEmpty()) {
-                invoice.setValue(total.replaceAll(",", "."));
+                invoice.setValue(total.replace(".", "").replace(",", "."));
                 invoice.setNr(nrFacturii.replaceAll("\\s+", ""));
                 invoice.setCod(codAbonat);
                 invoice.setDescription("factura de Curent");
+                invoice.setIban("RO22BTRLRONINCS000704401");
+                invoice.setFurnizor("ELECTRICA FURNIZARE");
                 break;
             }
         }

@@ -33,7 +33,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.time.format.TextStyle;
+import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -109,9 +111,8 @@ public class BTGo {
 //                || invoice.getCategory().equals("Gunoi")
                 || invoice.getCategory().equals("Gaz");
         if (utilitati) {
-            WebLocator textEl = new WebLocator().setText(" Plată nouă ");
-            WebLocator transfer = new WebLocator().setTag("fba-dashboard-navigation-button").setChildNodes(textEl);
-            transfer.click();
+            WebLocator plataNoua = new WebLocator(transfer).setClasses("cursor-pointer");
+            plataNoua.click();
             WebLocator platesteUtilitati = new WebLocator().setText(" Plătește utilități ");
             platesteUtilitati.click();
             TextField search = new TextField().setId("searchInput");
@@ -120,7 +121,7 @@ public class BTGo {
             WebLocator list = new WebLocator().setId("providersList");
             WebLocator row = new WebLocator(list).setClasses("row").setText(invoice.getFurnizor(), SearchType.DEEP_CHILD_NODE_OR_SELF);
             row.click();
-            scrollAndDoClickOn(nextButton);
+//            scrollAndDoClickOn(nextButton);
             TextField sumaEl = new TextField().setId("transferAmountInput");
             sumaEl.setValue(invoice.getValue());
             TextField codAbonatEl = new TextField().setId("paymentRef1Input");
@@ -130,8 +131,8 @@ public class BTGo {
             facturaEl.setValue(invoice.getNr());
             scrollAndDoClickOn(nextButton);
             Utils.sleep(1000);
-            WebLocator nrFacturaEl = new WebLocator().setText(" Numar factura");
-            nrFacturaEl.scrollIntoView(Go.NEAREST);
+//            WebLocator nrFacturaEl = new WebLocator().setText(" Numar factura");
+//            nrFacturaEl.scrollIntoView(Go.NEAREST);
             scrollAndDoClickOn(nextButton);
         } else {
             WebLocator plataNoua = new WebLocator(transfer).setClasses("cursor-pointer");
@@ -248,15 +249,7 @@ public class BTGo {
     public String saveReport(String cont, String firstDayOfMonth, String lastDayOfMonth, String location) {
         WebLocator detailsContainer = new WebLocator().setTag("fba-accounts-root").setClasses("ng-star-inserted");
         boolean ready = detailsContainer.ready(Duration.ofSeconds(10));
-        WebLocator title = new WebLocator().setTag("p").setText(cont);
-        WebLocator card = new WebLocator(detailsContainer).setClasses("card").setChildNodes(title);
-        if (!card.isPresent()) {
-            WebLocator selectAccount = new WebLocator().setId("selectAccountBtn");
-            selectAccount.click();
-            WebLocator modal = new WebLocator().setClasses("d-block", "modal", "fade", "show");
-            Card contEl = new Card(modal, cont);
-            contEl.click();
-        }
+        selectCard(cont, detailsContainer);
         Button openFilter = new Button().setId("openOffcanvasFiltersBtn");
         scrollAndDoClickOn(openFilter);
         WebLocator filterWindow = new WebLocator().setClasses("offcanvas", "offcanvas-end", "show");
@@ -285,9 +278,33 @@ public class BTGo {
         File file = FileUtility.getFileFromDownload();
         String fileName = file.getName();
         file.renameTo(new File(location + fileName));
+        goBack.scrollIntoView(Go.CENTER);
         goBack.doClick();
         homeBtn.doClick();
         return fileName;
+    }
+
+    private static void selectCard(String cont, WebLocator detailsContainer) {
+        WebLocator title = new WebLocator().setTag("p").setText(cont);
+        WebLocator card = new WebLocator(detailsContainer).setClasses("card").setChildNodes(title);
+        if (!card.isPresent()) {
+            WebLocator selectAccount = new WebLocator().setId("selectAccountBtn");
+            selectAccount.click();
+            WebLocator modal = new WebLocator().setClasses("d-block", "modal", "fade", "show");
+            Card contEl = new Card(modal, cont);
+            contEl.click();
+        }
+    }
+
+    private static void selectCont(String cont, WebLocator detailsContainer) {
+        WebLocator title = new WebLocator().setTag("span").setText(cont);
+        WebLocator card = new WebLocator(detailsContainer).setClasses("d-flex").setChildNodes(title);
+        if (!card.isPresent()) {
+            detailsContainer.click();
+            WebLocator modal = new WebLocator().setClasses("d-block", "modal", "fade", "show");
+            Card contEl = new Card(modal, cont);
+            contEl.click();
+        }
     }
 
     public String generateExtrasFromAll(String month, String location) {
@@ -358,5 +375,45 @@ public class BTGo {
         goHome.scrollIntoView(Go.NEAREST);
         goHome.ready(Duration.ofSeconds(10));
         goHome.doClick();
+    }
+
+    public String period(String month) {
+        String actualMonth;
+        LocalDate now = null;
+        for (int i = 0; i < 12; i++) {
+            now = LocalDate.now().minusMonths(i);
+            actualMonth = now.getMonth().getDisplayName(TextStyle.FULL_STANDALONE, roLocale);
+            if (actualMonth.equalsIgnoreCase(month)) {
+                break;
+            }
+        }
+        String firstDayOfMonth = now.with(TemporalAdjusters.firstDayOfMonth()).format(DateTimeFormatter.ofPattern("dd.MM.yyyy"));
+        String lastDayOfMonth = now.with(TemporalAdjusters.lastDayOfMonth()).format(DateTimeFormatter.ofPattern("dd.MM.yyyy"));
+        return firstDayOfMonth + " - " + lastDayOfMonth;
+    }
+
+    public String saveExtras(String month, String cont, String location) {
+        WebLocator extrase = new WebLocator().setId("statementsBtn");
+        extrase.click();
+        WebLocator detailsContainer = new WebLocator().setTag("fba-account-details-formlike").setClasses("ng-star-inserted");
+        boolean ready = detailsContainer.ready(Duration.ofSeconds(10));
+        selectCont(cont, detailsContainer);
+        ComboBox formatComboBox = new ComboBox().setAttribute("formcontrolname", "format");
+        formatComboBox.select("CSV");
+        ComboBox periodComboBox = new ComboBox().setAttribute("formcontrolname", "period");
+        periodComboBox.select("Lunar");
+        ComboBox monthComboBox = new ComboBox().setAttribute("formcontrolname", "month");
+        monthComboBox.select(month);
+        Button generateExtras = new Button().setId("generateStatementsBtn");
+        generateExtras.click();
+        WebLocator list = new WebLocator().setClasses("recent-files", "d-flex");
+        String period = period(month);
+        Item item = new Item(list, cont, period);
+        item.download();
+        Utils.sleep(2000);
+        File file = FileUtility.getFileFromDownload();
+        String fileName = file.getName();
+        file.renameTo(new File(location + fileName));
+        return fileName;
     }
 }

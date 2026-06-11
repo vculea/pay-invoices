@@ -74,65 +74,77 @@ public class Oblio {
                 Cell cell4 = rowEl.getCell(4);
                 String sumaString = cell4.getText().split(" RON")[0].trim();
                 double suma = Double.parseDouble(sumaString);
-                Optional<RowRecord> first = list.stream().filter(f -> {
-                    LocalDate dateInvoice = LocalDate.parse(dataEFactura, DateTimeFormatter.ofPattern("dd.MM.yyyy", appUtils.getLocale()));
-                    LocalDate dateRow = LocalDate.parse(f.data(), DateTimeFormatter.ofPattern("dd/MM/yyyy", appUtils.getLocale()));
-                    boolean dataEqual = dateInvoice.equals(dateRow);
-                    Double val = Double.parseDouble(f.value().replace(".", "").replace(",", "."));
-                    boolean isValue = val.equals(suma) || val.equals(suma + 0.01) && dataEqual;
-                    if (isValue) {
+                if (suma == 0) {
+                    Utils.sleep(1);
+                } else {
+                    if (suma == 228.04) {
                         Utils.sleep(1);
                     }
-                    boolean valid = dataEqual ? dataEqual && isValue : isValue;
-                    if (valid) {
-                        log.info("Data: {}-> Value: {}", dataEqual, isValue);
-                    }
-                    return valid; // && f.eFactura().isEmpty();
-                }).findFirst();
-                if (first.isPresent()) {
-                    if (Strings.isNullOrEmpty(first.get().eFactura())) {
-                        Cell cell = rowEl.getCell(6);
-                        WebLink download = new WebLink(cell);
-                        download.click();
-                        WebLink export = new WebLink(rowEl, "Vizualizeaza Document");
-                        export.click();
-                        Utils.sleep(2000);
-                        File pdfFile = FileUtility.getFileFromDownload();
-                        String content = FileUtility.getPDFContent(pdfFile);
-                        List<String> rows = content.lines().toList();
-                        String link = "";
-                        for (String row : rows) {
-                            if (row.contains("Index descarcare: ")) {
-                                String index = row.split("Index descarcare: ")[1].trim();
-                                String name = pdfFile.getName();
-                                String parent = pdfFile.getAbsolutePath().split(name)[0];
-                                File file = new File(parent + index + ".pdf");
-                                pdfFile.renameTo(file);
-                                link = appUtils.uploadFileInDrive(file.getAbsolutePath(), appUtils.getEFacturiFolderId());
-                                file.delete();
-                                break;
-                            }
+                    Optional<RowRecord> first = list.stream().filter(f -> {
+                        LocalDate dateInvoice = LocalDate.parse(dataEFactura, DateTimeFormatter.ofPattern("dd.MM.yyyy", appUtils.getLocale()));
+                        LocalDate dateRow = LocalDate.parse(f.data(), DateTimeFormatter.ofPattern("dd/MM/yyyy", appUtils.getLocale()));
+                        boolean dataEqual = dateInvoice.equals(dateRow);
+                        Double val = Double.parseDouble(f.value().replace(".", "").replace(",", "."));
+                        if (f.value().equals("228,00")) {
+                            Utils.sleep(1);
                         }
-                        RowRecord findRow = first.get();
-                        if (findRow.eFactura().isEmpty()) {
-                            int index = list.indexOf(findRow);
-                            List<Request> requests = new ArrayList<>();
-                            GoogleSheet.addItemForUpdate("eFactura", link, ";", index + 1, 7, sheetId, requests);
-                            BatchUpdateSpreadsheetRequest batchUpdateRequest = new BatchUpdateSpreadsheetRequest().setRequests(requests);
-                            BatchUpdateSpreadsheetResponse response = appUtils.getSheetsService().spreadsheets().batchUpdate(appUtils.getFacturiSheetId(), batchUpdateRequest).execute();
-                            RowRecord rowRecord = new RowRecord(findRow.category(), findRow.method(), findRow.data(), findRow.value(), findRow.description(), findRow.link(), findRow.dovada(), "eFactura");
-                            try {
-                                list.set(index, rowRecord);
-                            } catch (UnsupportedOperationException e) {
-                                list.add(rowRecord);
+                        boolean approximate = isApproximate(suma, val);
+                        boolean isValue = val.equals(suma) || approximate && dataEqual;
+                        if (isValue) {
+                            Utils.sleep(1);
+                        }
+                        boolean valid = dataEqual ? dataEqual && isValue : isValue;
+                        if (valid) {
+                            log.info("Data: {}-> Value: {}", dataEqual, isValue);
+                        }
+                        return valid; // && f.eFactura().isEmpty();
+                    }).findFirst();
+                    if (first.isPresent()) {
+                        if (Strings.isNullOrEmpty(first.get().eFactura())) {
+                            Cell cell = rowEl.getCell(6);
+                            WebLink download = new WebLink(cell);
+                            download.click();
+                            WebLink export = new WebLink(rowEl, "Vizualizeaza Document");
+                            export.click();
+                            Utils.sleep(2000);
+                            File pdfFile = FileUtility.getFileFromDownload();
+                            String content = FileUtility.getPDFContent(pdfFile);
+                            List<String> rows = content.lines().toList();
+                            String link = "";
+                            for (String row : rows) {
+                                if (row.contains("Index descarcare: ")) {
+                                    String index = row.split("Index descarcare: ")[1].trim();
+                                    String name = pdfFile.getName();
+                                    String parent = pdfFile.getAbsolutePath().split(name)[0];
+                                    File file = new File(parent + index + ".pdf");
+                                    pdfFile.renameTo(file);
+                                    link = appUtils.uploadFileInDrive(file.getAbsolutePath(), appUtils.getEFacturiFolderId());
+                                    file.delete();
+                                    break;
+                                }
                             }
+                            RowRecord findRow = first.get();
+                            if (findRow.eFactura().isEmpty()) {
+                                int index = list.indexOf(findRow);
+                                List<Request> requests = new ArrayList<>();
+                                GoogleSheet.addItemForUpdate("eFactura", link, ";", index + 1, 7, sheetId, requests);
+                                BatchUpdateSpreadsheetRequest batchUpdateRequest = new BatchUpdateSpreadsheetRequest().setRequests(requests);
+                                BatchUpdateSpreadsheetResponse response = appUtils.getSheetsService().spreadsheets().batchUpdate(appUtils.getFacturiSheetId(), batchUpdateRequest).execute();
+                                RowRecord rowRecord = new RowRecord(findRow.category(), findRow.method(), findRow.data(), findRow.value(), findRow.description(), findRow.link(), findRow.dovada(), "eFactura");
+                                try {
+                                    list.set(index, rowRecord);
+                                } catch (UnsupportedOperationException e) {
+                                    list.add(rowRecord);
+                                }
+                            }
+                        } else {
+                            Utils.sleep(1);
+//                        log.info("Factura already has eFactura link: {}", first.get().eFactura());
                         }
                     } else {
+//                    Nu este inregistrata aceasta factura
                         Utils.sleep(1);
-//                        log.info("Factura already has eFactura link: {}", first.get().eFactura());
                     }
-                } else {
-                    Utils.sleep(1);
                 }
             }
             next++;
@@ -142,5 +154,10 @@ public class Oblio {
             count = table.getCount();
         } while (count > 0 && next <= 4);
         Utils.sleep(1);
+    }
+
+    public static boolean isApproximate(double sumaCurenta, double sumaTinta) {
+        double max = 0.05;
+        return Math.abs(sumaCurenta - sumaTinta) <= max;
     }
 }

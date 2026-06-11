@@ -11,6 +11,7 @@ import com.sdl.selenium.web.SearchType;
 import com.sdl.selenium.web.link.WebLink;
 import com.sdl.selenium.web.utils.RetryUtils;
 import com.sdl.selenium.web.utils.Utils;
+import io.cucumber.java.PendingException;
 import io.cucumber.java.en.And;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -328,5 +329,13 @@ public class BTGoSteps extends TestBase {
     public void iReadPdf(String filePath) {
         File file = new File(filePath);
         FileUtility.getPDFContentV2(file);
+    }
+
+    @And("in BTGo I save extras from {string} month")
+    public void inBTGoISaveExtrasFromMonth(String month) {
+        String fileName = btGo.saveExtras(month, credentials.getContCurent(), csv());
+        appUtils.uploadFileInDrive(csv() + fileName, csvFolderId);
+        fileName = btGo.saveExtras(month, credentials.getContDeEconomii(), csv());
+        appUtils.uploadFileInDrive(csv() + fileName, csvFolderId);
     }
 }
