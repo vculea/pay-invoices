@@ -302,11 +302,15 @@ public class AppUtils {
         for (InsertTO insert : insertValues) {
             log.info("Processing insert: {}", insert);
             if (!insert.getStatus().equals("ignore")) {
-                int columnIndex = IntStream.range(0, types.size())
-                        .filter(i -> types.get(i).equalsIgnoreCase(insert.getSubtype()))
-                        .findFirst()
-                        .getAsInt();
-                incrementsByColumn.computeIfAbsent(columnIndex, key -> new ArrayList<>()).add(insert.getValue());
+                try {
+                    int columnIndex = IntStream.range(0, types.size())
+                            .filter(i -> types.get(i).equalsIgnoreCase(insert.getSubtype()))
+                            .findFirst()
+                            .getAsInt();
+                    incrementsByColumn.computeIfAbsent(columnIndex, key -> new ArrayList<>()).add(insert.getValue());
+                } catch (NoSuchElementException e) {
+                    Utils.sleep(1);
+                }
             }
             GoogleSheet.addItemForUpdate(insert.getStatus(), insert.getRowIndex(), 7, csvSheetId, csvRequests);
         }

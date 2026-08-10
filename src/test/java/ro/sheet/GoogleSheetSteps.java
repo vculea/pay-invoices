@@ -82,7 +82,7 @@ public class GoogleSheetSteps extends TestBase {
                 i.size() < 4 ? List.of() : (((String) i.get(3)).contains(",")
                         ? Arrays.stream(((String) i.get(3)).split("\\s*,\\s*")).toList()
                         : List.of((String) i.get(3))),
-                i.size() < 5 ? "" : (String) i.get(4)
+                i.size() < 5 ? List.of() : splitByComma((String) i.get(4))
         )).toList();
         Storage.set("peopleBank", list);
     }
@@ -139,6 +139,37 @@ public class GoogleSheetSteps extends TestBase {
         return new BigDecimal(normalized).abs();
     }
 
+    private List<String> splitByComma(String value) {
+        if (Strings.isNullOrEmpty(value)) {
+            return List.of();
+        }
+        return Arrays.stream(value.split("\\s*,\\s*"))
+                .map(String::trim)
+                .filter(token -> !token.isEmpty())
+                .toList();
+    }
+
+    private boolean isDescriptionMatchingAnyNote(String description, List<String> notes) {
+        if (notes == null || notes.isEmpty()) {
+            return false;
+        }
+        return notes.stream().anyMatch(note -> isDescriptionMatchingNote(description, note));
+    }
+
+    private boolean isDescriptionMatchingNote(String description, String note) {
+        String noteText = extractNoteText(note);
+        return !noteText.isEmpty() && description.contains(noteText);
+    }
+
+    private String extractNoteText(String note) {
+        int open = note.indexOf('(');
+        int close = note.lastIndexOf(')');
+        if (open >= 0 && close > open) {
+            return note.substring(open + 1, close).trim();
+        }
+        return note.trim();
+    }
+
     @And("in Google Sheets I populate Verificare with data from Cheltuieli and Venituri")
     public void inGoogleSheetsIPopulateVerificareWithDataFromCheltuieliAndVenituri() {
         String verificationId = credentials.getVerificationId();
@@ -150,17 +181,14 @@ public class GoogleSheetSteps extends TestBase {
         List<RowRecord> items = Storage.get("items");
         List<InsertTO> insertValues = new ArrayList<>();
         for (DataTO dataTO : data) {
-//            log.info("Processing data: {}", dataTO);
             if (!dataTO.getStatus().isEmpty()) {
                 continue;
             }
-//            if (dataTO.getDescription().contains("PANEMAR MORARIT")) {
-//                Utils.sleep(1);
-//            }
             if (dataTO.getType().contains("Plata")
-                    || dataTO.getType().contains("Pachet IZI")
+                    || dataTO.getType().contains("Pachet")
                     || dataTO.getType().contains("Comision")
                     || dataTO.getType().contains("Notificari prin SMS")
+                    || dataTO.getType().contains("Schimb valutar")
             ) {
                 cheltuieli.stream()
                         .filter(c -> c.getValues().stream().anyMatch(value ->
@@ -210,26 +238,40 @@ public class GoogleSheetSteps extends TestBase {
                         });
             } else if (dataTO.getType().contains("Incasare")
                     || dataTO.getType().contains("Depunere numerar ATM")
+                    || dataTO.getType().contains("Dobanda depozit")
             ) {
                 peopleBank.stream()
                         .filter(v -> v.getNames().stream().anyMatch(value -> dataTO.getDescription().contains(value)))
                         .findFirst()
                         .ifPresentOrElse(peopleTO -> {
                             BigDecimal sum = dataTO.getCredit();
-                            if (dataTO.getDescription().contains(peopleTO.getNote())) {
+                            if (isDescriptionMatchingAnyNote(dataTO.getDescription(), peopleTO.getNote())) {
                                 List<String> donations = peopleTO.getDonations();
-                                for (String donation : donations) {
+                                List<String> notes = peopleTO.getNote();
+                                int matchingRules = Math.min(donations.size(), notes.size());
+                                for (int index = 0; index < matchingRules; index++) {
+                                    if (!isDescriptionMatchingNote(dataTO.getDescription(), notes.get(index))) {
+                                        continue;
+                                    }
+                                    String donation = donations.get(index);
                                     String subType = donation.substring(0, donation.indexOf("{"));
                                     BigDecimal donationSum = new BigDecimal(donation.substring(donation.indexOf("{") + 1, donation.indexOf("}")));
-                                    sum = sum.subtract(donationSum);
+                                    BigDecimal appliedDonation = donationSum.min(sum);
+                                    if (appliedDonation.compareTo(BigDecimal.ZERO) <= 0) {
+                                        break;
+                                    }
+                                    sum = sum.subtract(appliedDonation);
                                     insertValues.add(new InsertTO(
                                             "Venituri",
                                             subType,
-                                            donationSum,
+                                            appliedDonation,
                                             "added",
                                             dataTO.getRowIndex(),
                                             peopleTO.getFullName()
                                     ));
+                                    if (sum.compareTo(BigDecimal.ZERO) == 0) {
+                                        break;
+                                    }
                                 }
                             }
                             if (sum.compareTo(BigDecimal.ZERO) > 0) {
@@ -275,6 +317,25 @@ public class GoogleSheetSteps extends TestBase {
         }
         String date = data.get(0).getDate();
         appUtils.addInVerificare(insertValues, csvFileId, verificationId, date);
+//        Map<String, BigDecimal> venituriBySubType = insertValues.stream()
+//                .filter(i -> "added".equals(i.getStatus()) && "Venituri".equals(i.getType()))
+//                .collect(Collectors.groupingBy(
+//                        InsertTO::getSubtype,
+//                        LinkedHashMap::new,
+//                        Collectors.reducing(BigDecimal.ZERO, InsertTO::getValue, BigDecimal::add)
+//                ));
+//
+//        Map<String, BigDecimal> cheltuieliBySubType = insertValues.stream()
+//                .filter(i -> "added".equals(i.getStatus()) && "Cheltuieli".equals(i.getType()))
+//                .collect(Collectors.groupingBy(
+//                        InsertTO::getSubtype,
+//                        LinkedHashMap::new,
+//                        Collectors.reducing(BigDecimal.ZERO, InsertTO::getValue, BigDecimal::add)
+//                ));
+//
+//        Storage.set("venituriBySubType", venituriBySubType);
+//        Storage.set("cheltuieliBySubType", cheltuieliBySubType);
+
     }
 
     private BigDecimal parseFacturaValue(String value) {

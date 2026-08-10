@@ -13,5 +13,5 @@ public class PeopleTO {
     private String fullName;
     private List<String> names;
     private List<String> donations;
-    private String note;
+    private List<String> note;
 }
