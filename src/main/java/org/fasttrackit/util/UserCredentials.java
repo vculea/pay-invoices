@@ -11,6 +11,7 @@ public class UserCredentials extends PropertiesReader {
     public String getShellyEmail() {
         return getProperty("shelly.email");
     }
+
     public String getShellyPassword() {
         return getProperty("shelly.password");
     }
@@ -18,6 +19,7 @@ public class UserCredentials extends PropertiesReader {
     public String getHomeAssistantName() {
         return getProperty("home.assistant.name");
     }
+
     public String getHomeAssistantPassword() {
         return getProperty("home.assistant.password");
     }
@@ -25,6 +27,7 @@ public class UserCredentials extends PropertiesReader {
     public String getNeoID() {
         return getProperty("neo.id");
     }
+
     public String getNeoPassword() {
         return getProperty("neo.password");
     }
@@ -32,6 +35,7 @@ public class UserCredentials extends PropertiesReader {
     public String getBTGoID() {
         return getProperty("btgo.id");
     }
+
     public String getBTGoPassword() {
         return getProperty("btgo.password");
     }
@@ -39,6 +43,7 @@ public class UserCredentials extends PropertiesReader {
     public String getCaSomesEmail() {
         return getProperty("ca.somes.email");
     }
+
     public String getCaSomesPassword() {
         return getProperty("ca.somes.password");
     }
@@ -46,6 +51,7 @@ public class UserCredentials extends PropertiesReader {
     public String getUpEmail() {
         return getProperty("up.email");
     }
+
     public String getUpPassword() {
         return getProperty("up.password");
     }
@@ -53,6 +59,7 @@ public class UserCredentials extends PropertiesReader {
     public String getMyVirtualEmail() {
         return getProperty("my.virtual.email");
     }
+
     public String getMyVirtualPassword() {
         return getProperty("my.virtual.password");
     }
@@ -68,7 +75,20 @@ public class UserCredentials extends PropertiesReader {
     public String getOblioEmail() {
         return getProperty("oblio.email");
     }
+
     public String getOblioPassword() {
         return getProperty("oblio.password");
+    }
+
+    public String getContId() {
+        return getProperty("cont.id");
+    }
+
+    public String getVerificationId() {
+        return getProperty("verification.id");
+    }
+
+    public String getFacturiId() {
+        return getProperty("facturi.id");
     }
 }

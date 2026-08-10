@@ -10,25 +10,26 @@ import com.sdl.selenium.utils.config.WebDriverConfig;
 import com.sdl.selenium.web.utils.Utils;
 import lombok.Getter;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ro.neo.Invoice;
 import ro.neo.Storage;
 import ro.sheet.GoogleSheet;
+import ro.sheet.InsertTO;
 import ro.sheet.ItemTO;
 import ro.sheet.RowTO;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.format.TextStyle;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.IntStream;
 
+@Slf4j
 @Getter
 public class AppUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(AppUtils.class);
@@ -264,6 +265,116 @@ public class AppUtils {
             }
         }
         return invoice;
+    }
+
+    @SneakyThrows
+    public void addInVerificare(List<InsertTO> insertValues, String csvFileId, String verificationId, String date) {
+        Integer csvSheetId = getSheetId(csvFileId, "");
+        List<List<Object>> values = getValues(verificationId, "A2:BY");
+        if (values == null || values.isEmpty()) {
+            throw new IllegalStateException("Nu exista valori in sheet-ul de verificare.");
+        }
+        List<String> types = values.get(0).stream().map(String::valueOf).toList();
+        String format = detectDateFormat(date);
+        LocalDate localDate = LocalDate.parse(date, DateTimeFormatter.ofPattern(format));
+        int year = localDate.getYear();
+        Integer verificationSheetId = getSheetId(verificationId, year + "");
+        String monthName = localDate.getMonth().getDisplayName(TextStyle.SHORT, locale).replaceAll("\\.$", "");
+        int rowIndex = IntStream.range(0, values.size())
+                .filter(i -> {
+                    String string = values.get(i).toString();
+                    return StringUtils.containsIgnoreCase(string, monthName);
+                })
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Nu am gasit luna '" + monthName + "' in valorile de verificare.")) + 1;
+        List<List<Object>> csvValues = getValues(csvFileId, "A20:H");
+        int firstDataRowNumber = 20;
+        int csvRowsCount = csvValues == null ? 0 : csvValues.size();
+        int lastDataRowNumber = firstDataRowNumber + csvRowsCount - 1;
+        if (lastDataRowNumber < firstDataRowNumber) {
+            lastDataRowNumber = firstDataRowNumber;
+        }
+
+        List<Request> csvRequests = new ArrayList<>();
+        List<Request> verificationRequests = new ArrayList<>();
+        List<Object> formulaRow = getFormulaRow(verificationId, rowIndex);
+        Map<Integer, List<BigDecimal>> incrementsByColumn = new LinkedHashMap<>();
+        for (InsertTO insert : insertValues) {
+            log.info("Processing insert: {}", insert);
+            if (!insert.getStatus().equals("ignore")) {
+                int columnIndex = IntStream.range(0, types.size())
+                        .filter(i -> types.get(i).equalsIgnoreCase(insert.getSubtype()))
+                        .findFirst()
+                        .getAsInt();
+                incrementsByColumn.computeIfAbsent(columnIndex, key -> new ArrayList<>()).add(insert.getValue());
+            }
+            GoogleSheet.addItemForUpdate(insert.getStatus(), insert.getRowIndex(), 7, csvSheetId, csvRequests);
+        }
+        for (Map.Entry<Integer, List<BigDecimal>> entry : incrementsByColumn.entrySet()) {
+            int columnIndex = entry.getKey();
+            List<BigDecimal> increments = entry.getValue();
+            String formula = getFormulaForColumn(formulaRow, columnIndex);
+            String incrementedFormula = buildIncrementedFormula(formula, increments);
+            GoogleSheet.addItemForUpdateFormula(incrementedFormula, rowIndex, columnIndex, verificationSheetId, verificationRequests);
+        }
+        if (!verificationRequests.isEmpty()) {
+            BatchUpdateSpreadsheetRequest verificationBatchUpdateRequest = new BatchUpdateSpreadsheetRequest().setRequests(verificationRequests);
+            BatchUpdateSpreadsheetResponse verificationResponse = sheetsService.spreadsheets().batchUpdate(verificationId, verificationBatchUpdateRequest).execute();
+        }
+        int summaryRowIndex = lastDataRowNumber; // zero-based index for row after the last data row
+        String fFormula = String.format(
+                "SUM(FILTER(F%d:F%d, H%d:H%d=\"added\", F%d:F%d<>\"\"))",
+                firstDataRowNumber, lastDataRowNumber, firstDataRowNumber, lastDataRowNumber, firstDataRowNumber, lastDataRowNumber
+        );
+        String gFormula = String.format(
+                "SUM(FILTER(G%d:G%d, H%d:H%d=\"added\", G%d:G%d<>\"\"))",
+                firstDataRowNumber, lastDataRowNumber, firstDataRowNumber, lastDataRowNumber, firstDataRowNumber, lastDataRowNumber
+        );
+        GoogleSheet.addItemForUpdateFormula(fFormula, summaryRowIndex, 5, csvSheetId, csvRequests);
+        GoogleSheet.addItemForUpdateFormula(gFormula, summaryRowIndex, 6, csvSheetId, csvRequests);
+        if (!csvRequests.isEmpty()) {
+            BatchUpdateSpreadsheetRequest csvBatchUpdateRequest = new BatchUpdateSpreadsheetRequest().setRequests(csvRequests);
+            BatchUpdateSpreadsheetResponse csvResponse = sheetsService.spreadsheets().batchUpdate(csvFileId, csvBatchUpdateRequest).execute();
+        }
+
+    }
+
+    @SneakyThrows
+    private List<Object> getFormulaRow(String sheetId, int rowIndex) {
+        String rowNumber = String.valueOf(rowIndex + 1);
+        ValueRange valueRange = sheetsService.spreadsheets().values()
+                .get(sheetId, "A" + rowNumber + ":BY" + rowNumber)
+                .setValueRenderOption("FORMULA")
+                .execute();
+        List<List<Object>> values = valueRange.getValues();
+        if (values == null || values.isEmpty()) {
+            throw new IllegalStateException("Nu am gasit randul cu formule pentru rowIndex " + rowIndex + ".");
+        }
+        return values.get(0);
+    }
+
+    private static String getFormulaForColumn(List<?> formulaRow, int columnIndex) {
+        if (columnIndex >= formulaRow.size()) {
+            return null;
+        }
+        String formula = String.valueOf(formulaRow.get(columnIndex));
+        if (StringUtils.isBlank(formula)) {
+            return null;
+        }
+        return formula;
+    }
+
+    private static String buildIncrementedFormula(String formula, List<BigDecimal> increments) {
+        String baseFormula = StringUtils.isBlank(formula) ? "" : StringUtils.removeStart(formula, "=");
+        String additions = increments.stream()
+                .map(AppUtils::toSheetDecimal)
+                .reduce((left, right) -> left + "+" + right)
+                .orElse("0");
+        return StringUtils.isBlank(baseFormula) ? additions : baseFormula + "+" + additions;
+    }
+
+    private static String toSheetDecimal(BigDecimal value) {
+        return value.stripTrailingZeros().toPlainString().replace(".", ",");
     }
 
     private record Result(int id, Integer sheetId) {
