@@ -12,6 +12,7 @@ import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ro.neo.Invoice;
@@ -22,6 +23,7 @@ import ro.sheet.ItemTO;
 import ro.sheet.RowTO;
 
 import java.math.BigDecimal;
+import java.text.Normalizer;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -275,8 +277,7 @@ public class AppUtils {
             throw new IllegalStateException("Nu exista valori in sheet-ul de verificare.");
         }
         List<String> types = values.get(0).stream().map(String::valueOf).toList();
-        String format = detectDateFormat(date);
-        LocalDate localDate = LocalDate.parse(date, DateTimeFormatter.ofPattern(format));
+        LocalDate localDate = getLocalDate(date);
         int year = localDate.getYear();
         Integer verificationSheetId = getSheetId(verificationId, year + "");
         String monthName = localDate.getMonth().getDisplayName(TextStyle.SHORT, locale).replaceAll("\\.$", "");
@@ -343,6 +344,20 @@ public class AppUtils {
 
     }
 
+    private static @NonNull LocalDate getLocalDate(String date) {
+        String format = detectDateFormat(date);
+        return LocalDate.parse(date, DateTimeFormatter.ofPattern(format));
+    }
+
+    @SneakyThrows
+    private List<List<Object>> getFormulaValues(String sheetId, String range) {
+        return sheetsService.spreadsheets().values()
+                .get(sheetId, range)
+                .setValueRenderOption("FORMULA")
+                .execute()
+                .getValues();
+    }
+
     @SneakyThrows
     private List<Object> getFormulaRow(String sheetId, int rowIndex) {
         String rowNumber = String.valueOf(rowIndex + 1);
@@ -377,8 +392,202 @@ public class AppUtils {
         return StringUtils.isBlank(baseFormula) ? additions : baseFormula + "+" + additions;
     }
 
+    private static String buildIncrementedFormulaFromCellValue(Object currentCellValue, List<BigDecimal> increments) {
+        String baseFormula = "";
+        if (currentCellValue != null) {
+            String rawValue = String.valueOf(currentCellValue).trim();
+            if (StringUtils.isNotBlank(rawValue)) {
+                if (rawValue.startsWith("=")) {
+                    baseFormula = rawValue.substring(1);
+                } else {
+                    baseFormula = toSheetDecimal(parseSheetAmount(currentCellValue));
+                }
+            }
+        }
+
+        String additions = increments.stream()
+                .map(AppUtils::toSheetDecimal)
+                .reduce((left, right) -> left + "+" + right)
+                .orElse("0");
+        return StringUtils.isBlank(baseFormula) ? additions : baseFormula + "+" + additions;
+    }
+
     private static String toSheetDecimal(BigDecimal value) {
         return value.stripTrailingZeros().toPlainString().replace(".", ",");
+    }
+
+    @SneakyThrows
+    public void addVenituriInCont(List<InsertTO> insertValues, String contId, String date) {
+        LocalDate localDate = getLocalDate(date);
+        Integer contSheetId = getSheetId(contId, localDate.getYear() + "");
+        List<InsertTO> venituri = insertValues.stream()
+                .filter(insert -> "added".equals(insert.getStatus()) && "Venituri".equals(insert.getType()))
+                .toList();
+        if (venituri.isEmpty()) {
+            return;
+        }
+
+        List<List<Object>> yearlyValues = getFormulaValues(contId, localDate.getYear() + "!A1:Y");
+        if (yearlyValues == null || yearlyValues.size() < 2) {
+            throw new IllegalStateException("Tab-ul anual pentru cont nu are antetele necesare.");
+        }
+
+        List<String> monthHeaders = propagateMergedHeaders(yearlyValues.get(0));
+        List<String> subtypeHeaders = toStringRow(yearlyValues.get(1));
+        String normalizedMonth = normalizeAnnualContKey(localDate.getMonth().getDisplayName(TextStyle.FULL, locale));
+
+        Map<String, Integer> rowIndexesByKey = new LinkedHashMap<>();
+        for (int rowIndex = 2; rowIndex < yearlyValues.size(); rowIndex++) {
+            String rowName = getStringValue(yearlyValues.get(rowIndex), 0);
+            if (StringUtils.isNotBlank(rowName)) {
+                rowIndexesByKey.putIfAbsent(normalizeAnnualContKey(rowName), rowIndex);
+            }
+        }
+
+        Map<CellCoordinate, List<BigDecimal>> incrementsByCell = new LinkedHashMap<>();
+        Map<String, Integer> appendedRowsByKey = new LinkedHashMap<>();
+        List<Request> contRequests = new ArrayList<>();
+        int[] nextRowIndex = {Math.max(yearlyValues.size(), 2)};
+
+        for (InsertTO insert : venituri) {
+            String rowLabel = resolveAnnualContRowLabel(insert);
+            int columnIndex = findAnnualContColumnIndex(monthHeaders, subtypeHeaders, normalizedMonth, insert);
+            String normalizedRowKey = normalizeAnnualContKey(rowLabel);
+
+            Integer rowIndex = rowIndexesByKey.get(normalizedRowKey);
+            if (rowIndex == null) {
+                rowIndex = appendedRowsByKey.computeIfAbsent(normalizedRowKey, key -> {
+                    int newRowIndex = nextRowIndex[0]++;
+                    GoogleSheet.addItemForUpdate(rowLabel, newRowIndex, 0, contSheetId, contRequests);
+                    return newRowIndex;
+                });
+                rowIndexesByKey.put(normalizedRowKey, rowIndex);
+            }
+
+            incrementsByCell.computeIfAbsent(new CellCoordinate(rowIndex, columnIndex), key -> new ArrayList<>()).add(insert.getValue());
+        }
+
+        for (Map.Entry<CellCoordinate, List<BigDecimal>> entry : incrementsByCell.entrySet()) {
+            CellCoordinate coordinate = entry.getKey();
+            Object currentCellValue = null;
+            if (coordinate.rowIndex() < yearlyValues.size()) {
+                currentCellValue = getObjectValue(yearlyValues.get(coordinate.rowIndex()), coordinate.columnIndex());
+            }
+            String incrementedFormula = buildIncrementedFormulaFromCellValue(currentCellValue, entry.getValue());
+            GoogleSheet.addItemForUpdateFormula(incrementedFormula, coordinate.rowIndex(), coordinate.columnIndex(), contSheetId, contRequests);
+        }
+
+        if (!contRequests.isEmpty()) {
+            BatchUpdateSpreadsheetRequest contBatchUpdateRequest = new BatchUpdateSpreadsheetRequest().setRequests(contRequests);
+            BatchUpdateSpreadsheetResponse contResponse = sheetsService.spreadsheets().batchUpdate(contId, contBatchUpdateRequest).execute();
+        }
+    }
+
+    private static String resolveAnnualContRowLabel(InsertTO insert) {
+        if (StringUtils.isNotBlank(insert.getNameCont())) {
+            return insert.getNameCont().trim();
+        }
+        if (StringUtils.isNotBlank(insert.getSubtype())) {
+            return insert.getSubtype().trim();
+        }
+        throw new IllegalStateException("InsertTO fara nume sau subtip pentru tabelul anual: " + insert);
+    }
+
+    private static int findAnnualContColumnIndex(List<String> monthHeaders, List<String> subtypeHeaders, String normalizedMonth, InsertTO insert) {
+        String targetColumnType = getAnnualContColumnType(insert);
+        return IntStream.range(1, Math.max(monthHeaders.size(), subtypeHeaders.size()))
+                .filter(columnIndex -> normalizedMonth.equals(normalizeAnnualContKey(getListValue(monthHeaders, columnIndex)))
+                        && targetColumnType.equals(normalizeAnnualContKey(getListValue(subtypeHeaders, columnIndex))))
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("Nu am gasit coloana pentru luna '" + normalizedMonth + "' si tipul '" + targetColumnType + "'."));
+    }
+
+    private static String getAnnualContColumnType(InsertTO insert) {
+        return "zeciuiala".equals(normalizeAnnualContKey(insert.getSubtype())) ? "zeciuiala" : "donatie";
+    }
+
+    static List<String> propagateMergedHeaders(List<?> headerRow) {
+        List<String> resolvedHeaders = new ArrayList<>();
+        String currentHeader = "";
+        for (Object value : headerRow) {
+            String text = value == null ? "" : String.valueOf(value).trim();
+            if (StringUtils.isNotBlank(text)) {
+                currentHeader = text;
+            }
+            resolvedHeaders.add(currentHeader);
+        }
+        return resolvedHeaders;
+    }
+
+    static String normalizeAnnualContKey(String value) {
+        if (StringUtils.isBlank(value)) {
+            return "";
+        }
+        String normalized = Normalizer.normalize(value, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "")
+                .replaceAll("\\s+", " ")
+                .trim()
+                .toLowerCase(localeStatic());
+        return switch (normalized) {
+            case "zeciuieli" -> "zeciuiala";
+            case "donatii" -> "donatie";
+            default -> normalized;
+        };
+    }
+
+    private static Locale localeStatic() {
+        return new Locale("ro", "RO");
+    }
+
+    static BigDecimal parseSheetAmount(Object value) {
+        if (value == null) {
+            return BigDecimal.ZERO;
+        }
+        if (value instanceof Number number) {
+            return BigDecimal.valueOf(number.doubleValue());
+        }
+        String normalized = String.valueOf(value).trim().replace(" ", "");
+        if (normalized.isEmpty()) {
+            return BigDecimal.ZERO;
+        }
+        if (normalized.contains(".") && normalized.contains(",")) {
+            normalized = normalized.replace(".", "").replace(",", ".");
+        } else if (normalized.matches("-?\\d{1,3}(\\.\\d{3})+")) {
+            normalized = normalized.replace(".", "");
+        } else if (normalized.contains(",")) {
+            normalized = normalized.replace(",", ".");
+        }
+        return new BigDecimal(normalized);
+    }
+
+    private static List<String> toStringRow(List<?> row) {
+        List<String> values = new ArrayList<>();
+        for (Object value : row) {
+            values.add(value == null ? "" : String.valueOf(value));
+        }
+        return values;
+    }
+
+    private static String getStringValue(List<?> row, int index) {
+        Object value = getObjectValue(row, index);
+        return value == null ? "" : String.valueOf(value).trim();
+    }
+
+    private static Object getObjectValue(List<?> row, int index) {
+        if (index < 0 || index >= row.size()) {
+            return null;
+        }
+        return row.get(index);
+    }
+
+    private static String getListValue(List<String> values, int index) {
+        if (index < 0 || index >= values.size()) {
+            return "";
+        }
+        return values.get(index);
+    }
+
+    private record CellCoordinate(int rowIndex, int columnIndex) {
     }
 
     private record Result(int id, Integer sheetId) {
@@ -387,8 +596,7 @@ public class AppUtils {
     private static boolean isBefore(RowTO i, LocalDate localDate) {
         try {
             String data = i.getData();
-            String format = detectDateFormat(data);
-            LocalDate date1 = LocalDate.parse(data, DateTimeFormatter.ofPattern(format));
+            LocalDate date1 = getLocalDate(data);
             boolean before = localDate.isBefore(date1);
             return before;
         } catch (DateTimeParseException | IllegalArgumentException e) {

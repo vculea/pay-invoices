@@ -273,6 +273,7 @@ public class GoogleSheetSteps extends TestBase {
     @And("in Google Sheets I populate Verificare with data from Cheltuieli and Venituri")
     public void inGoogleSheetsIPopulateVerificareWithDataFromCheltuieliAndVenituri() {
         String verificationId = credentials.getVerificationId();
+        String contId = credentials.getContId();
         String csvFileId = Storage.get("csvFileId");
         List<DataTO> data = Storage.get("data");
         List<CheltuieliTO> cheltuieli = Storage.get("cheltuieli");
@@ -340,9 +341,6 @@ public class GoogleSheetSteps extends TestBase {
                     || dataTO.getType().contains("Depunere numerar ATM")
                     || dataTO.getType().contains("Dobanda depozit")
             ) {
-//                if (dataTO.getDescription().contains("MUGUR CATALINA-MARIA")) {
-//                    Utils.sleep(1);
-//                }
                 peopleBank.stream()
                         .filter(v -> v.getNames().stream().anyMatch(value -> dataTO.getDescription().contains(value)))
                         .findFirst()
@@ -415,7 +413,8 @@ public class GoogleSheetSteps extends TestBase {
             }
         }
         String date = data.get(0).getDate();
-        appUtils.addInVerificare(insertValues, csvFileId, verificationId, date);
+//        appUtils.addInVerificare(insertValues, csvFileId, verificationId, date);
+        appUtils.addVenituriInCont(insertValues, contId, date);
         Map<String, List<LogInsertTO>> venituriBySubType = insertValues.stream()
                 .filter(i -> "added".equals(i.getStatus()) && "Venituri".equals(i.getType()))
                 .collect(Collectors.groupingBy(
