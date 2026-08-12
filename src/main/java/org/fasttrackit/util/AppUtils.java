@@ -45,7 +45,8 @@ public class AppUtils {
     private final String doveziFolderId = "1LOpGZSmUXxxs0KLAK9Rv6cwuo7-Cf1q-";// 2026/Dovezi
     private final String extrasCardFolderId = "1bXiP7dmAaasre_6ghEp_vWQUB49R2lgC";// 2025/ExtrasCard
     private final String decontFolderId = "1qSc0ZHUwPoetQZI_j2V61tSqBdlDvEca";// 2025/Decont
-    private static final Locale locale = new Locale("ro", "RO");
+    private final Locale locale = new Locale("ro", "RO");
+    private final static Locale localeStatic = new Locale("ro", "RO");
 
     public static void openUrl(String url) {
         LOGGER.info("open {}", url);
@@ -527,7 +528,7 @@ public class AppUtils {
                 .replaceAll("\\p{M}", "")
                 .replaceAll("\\s+", " ")
                 .trim()
-                .toLowerCase(locale);
+                .toLowerCase(localeStatic);
         return switch (normalized) {
             case "zeciuieli" -> "zeciuiala";
             case "donatii" -> "donatie";
