@@ -12,9 +12,8 @@ import ro.neo.Storage;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 @Slf4j
@@ -149,11 +148,8 @@ public class GoogleSheetSteps extends TestBase {
                 .toList();
     }
 
-    private boolean isDescriptionMatchingAnyNote(String description, List<String> notes) {
-        if (notes == null || notes.isEmpty()) {
-            return false;
-        }
-        return notes.stream().anyMatch(note -> isDescriptionMatchingNote(description, note));
+    private boolean hasMeaningfulNote(String note) {
+        return note != null && !Strings.isNullOrEmpty(extractNoteText(note));
     }
 
     private boolean isDescriptionMatchingNote(String description, String note) {
@@ -162,12 +158,116 @@ public class GoogleSheetSteps extends TestBase {
     }
 
     private String extractNoteText(String note) {
+        if (Strings.isNullOrEmpty(note)) {
+            return "";
+        }
         int open = note.indexOf('(');
         int close = note.lastIndexOf(')');
         if (open >= 0 && close > open) {
             return note.substring(open + 1, close).trim();
         }
         return note.trim();
+    }
+
+    private BigDecimal applyDonation(BigDecimal sum, List<String> donations, List<String> notes, int donationIndex, int noteIndex, Integer rowIndex, String fullName, List<InsertTO> insertValues) {
+        String donation = donations.get(donationIndex);
+        String subType = donation.substring(0, donation.indexOf("{"));
+        BigDecimal donationSum = new BigDecimal(donation.substring(donation.indexOf("{") + 1, donation.indexOf("}")));
+        BigDecimal appliedDonation = donationSum.min(sum);
+        if (appliedDonation.compareTo(BigDecimal.ZERO) <= 0) {
+            return sum;
+        }
+        BigDecimal remainingSum = sum.subtract(appliedDonation);
+        insertValues.add(new InsertTO(
+                "Venituri",
+                subType,
+                appliedDonation,
+                "added",
+                rowIndex,
+                fullName
+        ));
+        donations.remove(donationIndex);
+        if (noteIndex >= 0 && noteIndex < notes.size()) {
+            notes.remove(noteIndex);
+        }
+        return remainingSum.compareTo(BigDecimal.ZERO) < 0 ? BigDecimal.ZERO : remainingSum;
+    }
+
+    private void removeDonationAt(List<String> donations, List<String> notes, int donationIndex, int noteIndex) {
+        if (donationIndex >= 0 && donationIndex < donations.size()) {
+            BigDecimal donationAmount = parseAmountFromDonation(donations.get(donationIndex));
+            boolean shouldRemoveDonation = true;
+            if (donationAmount != null) {
+                for (int index = 0; index < notes.size(); index++) {
+                    if (index == noteIndex) {
+                        continue;
+                    }
+                    BigDecimal noteAmount = parseAmountBeforeParenthesis(notes.get(index));
+                    if (noteAmount != null && noteAmount.compareTo(donationAmount) == 0) {
+                        shouldRemoveDonation = false;
+                        break;
+                    }
+                }
+            }
+            if (shouldRemoveDonation) {
+                donations.remove(donationIndex);
+            }
+        }
+        if (noteIndex >= 0 && noteIndex < notes.size()) {
+            notes.remove(noteIndex);
+        }
+    }
+
+    private int findDonationIndexForNote(List<String> donations, String note, int fallbackIndex) {
+        BigDecimal noteAmount = parseAmountBeforeParenthesis(note);
+        if (noteAmount == null) {
+            return fallbackIndex < donations.size() ? fallbackIndex : -1;
+        }
+        for (int donationIndex = 0; donationIndex < donations.size(); donationIndex++) {
+            BigDecimal donationAmount = parseAmountFromDonation(donations.get(donationIndex));
+            if (donationAmount != null && donationAmount.compareTo(noteAmount) == 0) {
+                return donationIndex;
+            }
+        }
+        return fallbackIndex < donations.size() ? fallbackIndex : -1;
+    }
+
+    private BigDecimal parseAmountFromDonation(String donation) {
+        int open = donation.indexOf('{');
+        int close = donation.lastIndexOf('}');
+        if (open < 0 || close <= open) {
+            return null;
+        }
+        return parseFlexibleAmount(donation.substring(open + 1, close));
+    }
+
+    private BigDecimal parseAmountBeforeParenthesis(String value) {
+        if (Strings.isNullOrEmpty(value)) {
+            return null;
+        }
+        int open = value.indexOf('(');
+        String amount = open >= 0 ? value.substring(0, open) : value;
+        return parseFlexibleAmount(amount);
+    }
+
+    private BigDecimal parseFlexibleAmount(String value) {
+        if (Strings.isNullOrEmpty(value)) {
+            return null;
+        }
+        String normalized = value.trim().replace(" ", "");
+        if (normalized.isEmpty()) {
+            return null;
+        }
+        if (normalized.contains(",") && normalized.contains(".")) {
+            normalized = normalized.replace(",", "");
+        } else if (normalized.contains(",")) {
+            normalized = normalized.replace(",", ".");
+        }
+        try {
+            return new BigDecimal(normalized).abs();
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     @And("in Google Sheets I populate Verificare with data from Cheltuieli and Venituri")
@@ -181,7 +281,7 @@ public class GoogleSheetSteps extends TestBase {
         List<RowRecord> items = Storage.get("items");
         List<InsertTO> insertValues = new ArrayList<>();
         for (DataTO dataTO : data) {
-            if (!dataTO.getStatus().isEmpty()) {
+            if (false && !dataTO.getStatus().isEmpty()) {
                 continue;
             }
             if (dataTO.getType().contains("Plata")
@@ -240,39 +340,38 @@ public class GoogleSheetSteps extends TestBase {
                     || dataTO.getType().contains("Depunere numerar ATM")
                     || dataTO.getType().contains("Dobanda depozit")
             ) {
+//                if (dataTO.getDescription().contains("MUGUR CATALINA-MARIA")) {
+//                    Utils.sleep(1);
+//                }
                 peopleBank.stream()
                         .filter(v -> v.getNames().stream().anyMatch(value -> dataTO.getDescription().contains(value)))
                         .findFirst()
                         .ifPresentOrElse(peopleTO -> {
                             BigDecimal sum = dataTO.getCredit();
-                            if (isDescriptionMatchingAnyNote(dataTO.getDescription(), peopleTO.getNote())) {
-                                List<String> donations = peopleTO.getDonations();
-                                List<String> notes = peopleTO.getNote();
-                                int matchingRules = Math.min(donations.size(), notes.size());
-                                for (int index = 0; index < matchingRules; index++) {
-                                    if (!isDescriptionMatchingNote(dataTO.getDescription(), notes.get(index))) {
-                                        continue;
-                                    }
-                                    String donation = donations.get(index);
-                                    String subType = donation.substring(0, donation.indexOf("{"));
-                                    BigDecimal donationSum = new BigDecimal(donation.substring(donation.indexOf("{") + 1, donation.indexOf("}")));
-                                    BigDecimal appliedDonation = donationSum.min(sum);
-                                    if (appliedDonation.compareTo(BigDecimal.ZERO) <= 0) {
-                                        break;
-                                    }
-                                    sum = sum.subtract(appliedDonation);
-                                    insertValues.add(new InsertTO(
-                                            "Venituri",
-                                            subType,
-                                            appliedDonation,
-                                            "added",
-                                            dataTO.getRowIndex(),
-                                            peopleTO.getFullName()
-                                    ));
-                                    if (sum.compareTo(BigDecimal.ZERO) == 0) {
-                                        break;
-                                    }
+                            List<String> donations = new ArrayList<>(peopleTO.getDonations());
+                            List<String> notes = new ArrayList<>(peopleTO.getNote());
+
+                            for (int index = 0; index < donations.size() && sum.compareTo(BigDecimal.ZERO) > 0; ) {
+                                String note = index < notes.size() ? notes.get(index) : "";
+                                if (!hasMeaningfulNote(note)) {
+                                    index++;
+                                    continue;
                                 }
+                                int donationIndex = findDonationIndexForNote(donations, note, index);
+                                if (!isDescriptionMatchingNote(dataTO.getDescription(), note)) {
+                                    removeDonationAt(donations, notes, donationIndex, index);
+                                    continue;
+                                }
+                                sum = applyDonation(sum, donations, notes, donationIndex, index, dataTO.getRowIndex(), peopleTO.getFullName(), insertValues);
+                            }
+
+                            for (int index = 0; index < donations.size() && sum.compareTo(BigDecimal.ZERO) > 0; ) {
+                                String note = index < notes.size() ? notes.get(index) : "";
+                                if (hasMeaningfulNote(note)) {
+                                    index++;
+                                    continue;
+                                }
+                                sum = applyDonation(sum, donations, notes, index, -1, dataTO.getRowIndex(), peopleTO.getFullName(), insertValues);
                             }
                             if (sum.compareTo(BigDecimal.ZERO) > 0) {
                                 insertValues.add(new InsertTO(
@@ -317,25 +416,21 @@ public class GoogleSheetSteps extends TestBase {
         }
         String date = data.get(0).getDate();
         appUtils.addInVerificare(insertValues, csvFileId, verificationId, date);
-//        Map<String, BigDecimal> venituriBySubType = insertValues.stream()
-//                .filter(i -> "added".equals(i.getStatus()) && "Venituri".equals(i.getType()))
-//                .collect(Collectors.groupingBy(
-//                        InsertTO::getSubtype,
-//                        LinkedHashMap::new,
-//                        Collectors.reducing(BigDecimal.ZERO, InsertTO::getValue, BigDecimal::add)
-//                ));
-//
-//        Map<String, BigDecimal> cheltuieliBySubType = insertValues.stream()
-//                .filter(i -> "added".equals(i.getStatus()) && "Cheltuieli".equals(i.getType()))
-//                .collect(Collectors.groupingBy(
-//                        InsertTO::getSubtype,
-//                        LinkedHashMap::new,
-//                        Collectors.reducing(BigDecimal.ZERO, InsertTO::getValue, BigDecimal::add)
-//                ));
-//
-//        Storage.set("venituriBySubType", venituriBySubType);
-//        Storage.set("cheltuieliBySubType", cheltuieliBySubType);
+        Map<String, List<LogInsertTO>> venituriBySubType = insertValues.stream()
+                .filter(i -> "added".equals(i.getStatus()) && "Venituri".equals(i.getType()))
+                .collect(Collectors.groupingBy(
+                        InsertTO::getSubtype,
+                        Collectors.mapping(i -> new LogInsertTO(i.getValue(), i.getNameCont()), Collectors.toList())
+                ));
 
+        LinkedHashMap<String, List<BigDecimal>> cheltuieliBySubType = insertValues.stream()
+                .filter(i -> "added".equals(i.getStatus()) && "Cheltuieli".equals(i.getType()))
+                .collect(Collectors.groupingBy(
+                        InsertTO::getSubtype,
+                        LinkedHashMap::new,
+                        Collectors.mapping(InsertTO::getValue, Collectors.toList())
+                ));
+        Utils.sleep(1);
     }
 
     private BigDecimal parseFacturaValue(String value) {
