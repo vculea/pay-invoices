@@ -9,11 +9,7 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
-public class LogInsertTO {
-//    private String type;
-//    private String subtype;
+public class LogTO {
     private BigDecimal value;
-//    private String status;
-//    private Integer rowIndex;
     private String nameCont;
 }

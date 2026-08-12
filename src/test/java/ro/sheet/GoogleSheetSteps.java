@@ -298,7 +298,7 @@ public class GoogleSheetSteps extends TestBase {
         List<RowRecord> items = Storage.get("items");
         List<InsertTO> insertValues = new ArrayList<>();
         for (DataTO dataTO : data) {
-            if (false && !dataTO.getStatus().isEmpty()) {
+            if (!dataTO.getStatus().isEmpty()) {
                 continue;
             }
             if (dataTO.getType().contains("Plata")
@@ -432,13 +432,13 @@ public class GoogleSheetSteps extends TestBase {
             }
         }
         String date = data.get(0).getDate();
-//        appUtils.addInVerificare(insertValues, csvFileId, verificationId, date);
+        appUtils.addInVerificare(insertValues, csvFileId, verificationId, date);
         appUtils.addVenituriInCont(insertValues, contId, date);
-        Map<String, List<LogInsertTO>> venituriBySubType = insertValues.stream()
+        Map<String, List<LogTO>> venituriBySubType = insertValues.stream()
                 .filter(i -> "added".equals(i.getStatus()) && "Venituri".equals(i.getType()))
                 .collect(Collectors.groupingBy(
                         InsertTO::getSubtype,
-                        Collectors.mapping(i -> new LogInsertTO(i.getValue(), i.getNameCont()), Collectors.toList())
+                        Collectors.mapping(i -> new LogTO(i.getValue(), i.getNameCont()), Collectors.toList())
                 ));
 
         LinkedHashMap<String, List<BigDecimal>> cheltuieliBySubType = insertValues.stream()
