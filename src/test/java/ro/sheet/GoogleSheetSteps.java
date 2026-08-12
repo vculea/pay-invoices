@@ -157,6 +157,19 @@ public class GoogleSheetSteps extends TestBase {
         return !noteText.isEmpty() && description.contains(noteText);
     }
 
+    private boolean hasTransactionDateRestriction(String note) {
+        return extractNoteDate(note) != null;
+    }
+
+    private boolean isTransactionMatchingNoteDate(String transactionDate, String note) {
+        LocalDate noteDate = extractNoteDate(note);
+        if (noteDate == null) {
+            return true;
+        }
+        LocalDate transactionLocalDate = parseLocalDate(transactionDate);
+        return transactionLocalDate != null && transactionLocalDate.isEqual(noteDate);
+    }
+
     private String extractNoteText(String note) {
         if (Strings.isNullOrEmpty(note)) {
             return "";
@@ -169,8 +182,32 @@ public class GoogleSheetSteps extends TestBase {
         return note.trim();
     }
 
-    private BigDecimal applyDonation(BigDecimal sum, List<String> donations, List<String> notes, int donationIndex, int noteIndex, Integer rowIndex, String fullName, List<InsertTO> insertValues) {
-        String donation = donations.get(donationIndex);
+    private LocalDate extractNoteDate(String note) {
+        String noteText = extractNoteText(note);
+        if (!noteText.matches("\\d{1,2}[./-]\\d{1,2}[./-]\\d{4}")) {
+            return null;
+        }
+        return parseLocalDate(noteText);
+    }
+
+    private List<DonationEntry> buildDonationEntries(List<String> donations, List<String> notes) {
+        List<DonationEntry> entries = donations.stream()
+                .map(donation -> new DonationEntry(donation, ""))
+                .collect(Collectors.toCollection(ArrayList::new));
+        boolean[] assignedDonations = new boolean[donations.size()];
+        for (int noteIndex = 0; noteIndex < notes.size(); noteIndex++) {
+            int donationIndex = findDonationIndexForNote(donations, assignedDonations, notes.get(noteIndex), noteIndex);
+            if (donationIndex < 0) {
+                continue;
+            }
+            DonationEntry entry = entries.get(donationIndex);
+            entries.set(donationIndex, new DonationEntry(entry.donation(), notes.get(noteIndex)));
+            assignedDonations[donationIndex] = true;
+        }
+        return entries;
+    }
+
+    private BigDecimal applyDonation(BigDecimal sum, String donation, Integer rowIndex, String fullName, List<InsertTO> insertValues) {
         String subType = donation.substring(0, donation.indexOf("{"));
         BigDecimal donationSum = new BigDecimal(donation.substring(donation.indexOf("{") + 1, donation.indexOf("}")));
         BigDecimal appliedDonation = donationSum.min(sum);
@@ -186,50 +223,29 @@ public class GoogleSheetSteps extends TestBase {
                 rowIndex,
                 fullName
         ));
-        donations.remove(donationIndex);
-        if (noteIndex >= 0 && noteIndex < notes.size()) {
-            notes.remove(noteIndex);
-        }
         return remainingSum.compareTo(BigDecimal.ZERO) < 0 ? BigDecimal.ZERO : remainingSum;
     }
 
-    private void removeDonationAt(List<String> donations, List<String> notes, int donationIndex, int noteIndex) {
-        if (donationIndex >= 0 && donationIndex < donations.size()) {
-            BigDecimal donationAmount = parseAmountFromDonation(donations.get(donationIndex));
-            boolean shouldRemoveDonation = true;
-            if (donationAmount != null) {
-                for (int index = 0; index < notes.size(); index++) {
-                    if (index == noteIndex) {
-                        continue;
-                    }
-                    BigDecimal noteAmount = parseAmountBeforeParenthesis(notes.get(index));
-                    if (noteAmount != null && noteAmount.compareTo(donationAmount) == 0) {
-                        shouldRemoveDonation = false;
-                        break;
-                    }
-                }
-            }
-            if (shouldRemoveDonation) {
-                donations.remove(donationIndex);
-            }
-        }
-        if (noteIndex >= 0 && noteIndex < notes.size()) {
-            notes.remove(noteIndex);
-        }
-    }
-
-    private int findDonationIndexForNote(List<String> donations, String note, int fallbackIndex) {
+    private int findDonationIndexForNote(List<String> donations, boolean[] assignedDonations, String note, int fallbackIndex) {
         BigDecimal noteAmount = parseAmountBeforeParenthesis(note);
         if (noteAmount == null) {
-            return fallbackIndex < donations.size() ? fallbackIndex : -1;
+            return isDonationIndexAvailable(assignedDonations, fallbackIndex) ? fallbackIndex : -1;
         }
         for (int donationIndex = 0; donationIndex < donations.size(); donationIndex++) {
             BigDecimal donationAmount = parseAmountFromDonation(donations.get(donationIndex));
-            if (donationAmount != null && donationAmount.compareTo(noteAmount) == 0) {
+            if (donationAmount != null
+                    && donationAmount.compareTo(noteAmount) == 0
+                    && !assignedDonations[donationIndex]) {
                 return donationIndex;
             }
         }
-        return fallbackIndex < donations.size() ? fallbackIndex : -1;
+        return isDonationIndexAvailable(assignedDonations, fallbackIndex) ? fallbackIndex : -1;
+    }
+
+    private boolean isDonationIndexAvailable(boolean[] assignedDonations, int donationIndex) {
+        return donationIndex >= 0
+                && donationIndex < assignedDonations.length
+                && !assignedDonations[donationIndex];
     }
 
     private BigDecimal parseAmountFromDonation(String donation) {
@@ -346,30 +362,33 @@ public class GoogleSheetSteps extends TestBase {
                         .findFirst()
                         .ifPresentOrElse(peopleTO -> {
                             BigDecimal sum = dataTO.getCredit();
-                            List<String> donations = new ArrayList<>(peopleTO.getDonations());
-                            List<String> notes = new ArrayList<>(peopleTO.getNote());
+                            List<DonationEntry> donationEntries = buildDonationEntries(peopleTO.getDonations(), peopleTO.getNote());
 
-                            for (int index = 0; index < donations.size() && sum.compareTo(BigDecimal.ZERO) > 0; ) {
-                                String note = index < notes.size() ? notes.get(index) : "";
+                            for (DonationEntry donationEntry : donationEntries) {
+                                if (sum.compareTo(BigDecimal.ZERO) <= 0) {
+                                    break;
+                                }
+                                String note = donationEntry.note();
                                 if (!hasMeaningfulNote(note)) {
-                                    index++;
                                     continue;
                                 }
-                                int donationIndex = findDonationIndexForNote(donations, note, index);
-                                if (!isDescriptionMatchingNote(dataTO.getDescription(), note)) {
-                                    removeDonationAt(donations, notes, donationIndex, index);
+                                if (hasTransactionDateRestriction(note) && !isTransactionMatchingNoteDate(dataTO.getDate(), note)) {
                                     continue;
                                 }
-                                sum = applyDonation(sum, donations, notes, donationIndex, index, dataTO.getRowIndex(), peopleTO.getFullName(), insertValues);
+                                if (!hasTransactionDateRestriction(note) && !isDescriptionMatchingNote(dataTO.getDescription(), note)) {
+                                    continue;
+                                }
+                                sum = applyDonation(sum, donationEntry.donation(), dataTO.getRowIndex(), peopleTO.getFullName(), insertValues);
                             }
 
-                            for (int index = 0; index < donations.size() && sum.compareTo(BigDecimal.ZERO) > 0; ) {
-                                String note = index < notes.size() ? notes.get(index) : "";
-                                if (hasMeaningfulNote(note)) {
-                                    index++;
+                            for (DonationEntry donationEntry : donationEntries) {
+                                if (sum.compareTo(BigDecimal.ZERO) <= 0) {
+                                    break;
+                                }
+                                if (hasMeaningfulNote(donationEntry.note())) {
                                     continue;
                                 }
-                                sum = applyDonation(sum, donations, notes, index, -1, dataTO.getRowIndex(), peopleTO.getFullName(), insertValues);
+                                sum = applyDonation(sum, donationEntry.donation(), dataTO.getRowIndex(), peopleTO.getFullName(), insertValues);
                             }
                             if (sum.compareTo(BigDecimal.ZERO) > 0) {
                                 insertValues.add(new InsertTO(
@@ -447,27 +466,29 @@ public class GoogleSheetSteps extends TestBase {
     }
 
     private boolean sameExactDate(String facturaDate, String transactionDate) {
-        try {
-            String fd = facturaDate.trim();
-            String td = transactionDate.trim();
-            LocalDate facturaLocalDate = LocalDate.parse(fd, DateTimeFormatter.ofPattern(AppUtils.detectDateFormat(fd)));
-            LocalDate transactionLocalDate = LocalDate.parse(td, DateTimeFormatter.ofPattern(AppUtils.detectDateFormat(td)));
-            return facturaLocalDate.isEqual(transactionLocalDate);
-        } catch (Exception e) {
-            return false;
-        }
+        LocalDate facturaLocalDate = parseLocalDate(facturaDate);
+        LocalDate transactionLocalDate = parseLocalDate(transactionDate);
+        return facturaLocalDate != null && transactionLocalDate != null && facturaLocalDate.isEqual(transactionLocalDate);
     }
 
     private boolean sameYearMonth(String facturaDate, String transactionDate) {
+        LocalDate facturaLocalDate = parseLocalDate(facturaDate);
+        LocalDate transactionLocalDate = parseLocalDate(transactionDate);
+        return facturaLocalDate != null
+                && transactionLocalDate != null
+                && facturaLocalDate.getYear() == transactionLocalDate.getYear()
+                && facturaLocalDate.getMonth() == transactionLocalDate.getMonth();
+    }
+
+    private LocalDate parseLocalDate(String value) {
         try {
-            String fd = facturaDate.trim();
-            String td = transactionDate.trim();
-            LocalDate facturaLocalDate = LocalDate.parse(fd, DateTimeFormatter.ofPattern(AppUtils.detectDateFormat(fd)));
-            LocalDate transactionLocalDate = LocalDate.parse(td, DateTimeFormatter.ofPattern(AppUtils.detectDateFormat(td)));
-            return facturaLocalDate.getYear() == transactionLocalDate.getYear()
-                    && facturaLocalDate.getMonth() == transactionLocalDate.getMonth();
+            String trimmedValue = value.trim();
+            return LocalDate.parse(trimmedValue, DateTimeFormatter.ofPattern(AppUtils.detectDateFormat(trimmedValue)));
         } catch (Exception e) {
-            return false;
+            return null;
         }
+    }
+
+    private record DonationEntry(String donation, String note) {
     }
 }
