@@ -170,6 +170,28 @@ public class GoogleSheetSteps extends TestBase {
         return transactionLocalDate != null && transactionLocalDate.isEqual(noteDate);
     }
 
+    private boolean hasMeaningfulNotes(List<String> notes) {
+        return notes != null && notes.stream().anyMatch(this::hasMeaningfulNote);
+    }
+
+    private boolean isTransactionMatchingAnyNote(DataTO dataTO, List<String> notes) {
+        if (notes == null || notes.isEmpty()) {
+            return false;
+        }
+        for (String note : notes) {
+            if (!hasMeaningfulNote(note)) {
+                continue;
+            }
+            if (hasTransactionDateRestriction(note) && isTransactionMatchingNoteDate(dataTO.getDate(), note)) {
+                return true;
+            }
+            if (!hasTransactionDateRestriction(note) && isDescriptionMatchingNote(dataTO.getDescription(), note)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private String extractNoteText(String note) {
         if (Strings.isNullOrEmpty(note)) {
             return "";
@@ -192,7 +214,7 @@ public class GoogleSheetSteps extends TestBase {
 
     private List<DonationEntry> buildDonationEntries(List<String> donations, List<String> notes) {
         List<DonationEntry> entries = donations.stream()
-                .map(donation -> new DonationEntry(donation, ""))
+                .map(donation -> new DonationEntry(donation, new ArrayList<>()))
                 .collect(Collectors.toCollection(ArrayList::new));
         boolean[] assignedDonations = new boolean[donations.size()];
         for (int noteIndex = 0; noteIndex < notes.size(); noteIndex++) {
@@ -201,7 +223,9 @@ public class GoogleSheetSteps extends TestBase {
                 continue;
             }
             DonationEntry entry = entries.get(donationIndex);
-            entries.set(donationIndex, new DonationEntry(entry.donation(), notes.get(noteIndex)));
+            List<String> updatedNotes = new ArrayList<>(entry.notes());
+            updatedNotes.add(notes.get(noteIndex));
+            entries.set(donationIndex, new DonationEntry(entry.donation(), updatedNotes));
             assignedDonations[donationIndex] = true;
         }
         return entries;
@@ -231,15 +255,20 @@ public class GoogleSheetSteps extends TestBase {
         if (noteAmount == null) {
             return isDonationIndexAvailable(assignedDonations, fallbackIndex) ? fallbackIndex : -1;
         }
+        int assignedMatchingDonationIndex = -1;
         for (int donationIndex = 0; donationIndex < donations.size(); donationIndex++) {
             BigDecimal donationAmount = parseAmountFromDonation(donations.get(donationIndex));
-            if (donationAmount != null
-                    && donationAmount.compareTo(noteAmount) == 0
-                    && !assignedDonations[donationIndex]) {
+            if (donationAmount == null || donationAmount.compareTo(noteAmount) != 0) {
+                continue;
+            }
+            if (!assignedDonations[donationIndex]) {
                 return donationIndex;
             }
+            if (assignedMatchingDonationIndex < 0) {
+                assignedMatchingDonationIndex = donationIndex;
+            }
         }
-        return isDonationIndexAvailable(assignedDonations, fallbackIndex) ? fallbackIndex : -1;
+        return assignedMatchingDonationIndex;
     }
 
     private boolean isDonationIndexAvailable(boolean[] assignedDonations, int donationIndex) {
@@ -368,14 +397,10 @@ public class GoogleSheetSteps extends TestBase {
                                 if (sum.compareTo(BigDecimal.ZERO) <= 0) {
                                     break;
                                 }
-                                String note = donationEntry.note();
-                                if (!hasMeaningfulNote(note)) {
+                                if (!hasMeaningfulNotes(donationEntry.notes())) {
                                     continue;
                                 }
-                                if (hasTransactionDateRestriction(note) && !isTransactionMatchingNoteDate(dataTO.getDate(), note)) {
-                                    continue;
-                                }
-                                if (!hasTransactionDateRestriction(note) && !isDescriptionMatchingNote(dataTO.getDescription(), note)) {
+                                if (!isTransactionMatchingAnyNote(dataTO, donationEntry.notes())) {
                                     continue;
                                 }
                                 sum = applyDonation(sum, donationEntry.donation(), dataTO.getRowIndex(), peopleTO.getFullName(), insertValues);
@@ -385,7 +410,7 @@ public class GoogleSheetSteps extends TestBase {
                                 if (sum.compareTo(BigDecimal.ZERO) <= 0) {
                                     break;
                                 }
-                                if (hasMeaningfulNote(donationEntry.note())) {
+                                if (hasMeaningfulNotes(donationEntry.notes())) {
                                     continue;
                                 }
                                 sum = applyDonation(sum, donationEntry.donation(), dataTO.getRowIndex(), peopleTO.getFullName(), insertValues);
@@ -489,6 +514,6 @@ public class GoogleSheetSteps extends TestBase {
         }
     }
 
-    private record DonationEntry(String donation, String note) {
+    private record DonationEntry(String donation, List<String> notes) {
     }
 }

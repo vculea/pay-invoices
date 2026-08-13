@@ -422,7 +422,7 @@ public class AppUtils {
         LocalDate localDate = getLocalDate(date);
         Integer contSheetId = getSheetId(contId, localDate.getYear() + "");
         List<InsertTO> venituri = insertValues.stream()
-                .filter(insert -> "added".equals(insert.getStatus()) && "Venituri".equals(insert.getType()))
+                .filter(i -> "added".equals(i.getStatus()) && "Venituri".equals(i.getType()) && !i.getSubtype().contains("Tabara"))
                 .toList();
         if (venituri.isEmpty()) {
             return;
