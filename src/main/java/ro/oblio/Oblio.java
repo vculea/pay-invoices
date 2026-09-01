@@ -85,7 +85,7 @@ public class Oblio {
                         LocalDate dateRow = LocalDate.parse(f.data(), DateTimeFormatter.ofPattern("dd/MM/yyyy", appUtils.getLocale()));
                         boolean dataEqual = dateInvoice.equals(dateRow);
                         Double val = Double.parseDouble(f.value().replace(".", "").replace(",", "."));
-                        if (f.value().equals("228,00")) {
+                        if (f.description().equals("Avans cazare") || f.description().equals("cazare adolescenti")) {
                             Utils.sleep(1);
                         }
                         boolean approximate = isApproximate(suma, val);

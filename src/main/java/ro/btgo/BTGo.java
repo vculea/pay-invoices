@@ -84,8 +84,8 @@ public class BTGo {
         int actualValue = (int) tmpValue;
         if (value == 0 || actualValue < value) {
             WebLocator transferIntern = new WebLocator().setTag("fba-side-navigation-button").setId("transferInternalBtn");
-            WebLocator transferInternIcon = new WebLocator(transferIntern).setClasses("nav-icon-button");
-            transferInternIcon.click();
+//            WebLocator transferInternIcon = new WebLocator(transferIntern).setClasses("nav-icon-button");
+            transferIntern.click();
             WebLocator container = new WebLocator().setTag("fba-transfer-accounts-container");
             container.scrollIntoView(Go.NEAREST);
             Card cardFromCont = new Card(container, fromCont);
@@ -135,8 +135,7 @@ public class BTGo {
 //            nrFacturaEl.scrollIntoView(Go.NEAREST);
             scrollAndDoClickOn(nextButton);
         } else {
-            WebLocator plataNoua = new WebLocator(transfer).setClasses("cursor-pointer");
-            plataNoua.click();
+            transfer.click();
             WebLocator transferBani = new WebLocator().setId("selection0Btn");
             transferBani.click();
             WebLocator beneficiar = new WebLocator().setId("partnerSwitch");
