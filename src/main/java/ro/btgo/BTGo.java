@@ -111,8 +111,7 @@ public class BTGo {
 //                || invoice.getCategory().equals("Gunoi")
                 || invoice.getCategory().equals("Gaz");
         if (utilitati) {
-            WebLocator plataNoua = new WebLocator(transfer).setClasses("cursor-pointer");
-            plataNoua.click();
+            transfer.click();
             WebLocator platesteUtilitati = new WebLocator().setText(" Plătește utilități ");
             platesteUtilitati.click();
             TextField search = new TextField().setId("searchInput");

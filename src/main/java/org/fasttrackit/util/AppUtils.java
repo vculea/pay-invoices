@@ -26,6 +26,7 @@ import java.math.BigDecimal;
 import java.text.Normalizer;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.DateTimeParseException;
 import java.time.format.TextStyle;
 import java.util.*;
@@ -258,9 +259,11 @@ public class AppUtils {
                 iban = row.split("Cont IBAN:")[1].trim();
             } else if (row.contains("Data:")) {
                 data = row.split("Data:")[1].trim();
+            } else if (row.contains("Data :")) {
+                data = row.split("Data :")[1].trim();
             }
             if (!total.isEmpty() && !nume.isEmpty() && !iban.isEmpty() && !data.isEmpty()) {
-                invoice.setValue(total.replaceAll(",", "."));
+                invoice.setValue(total.replace(",", "."));
                 invoice.setFurnizor(nume);
                 invoice.setIban(iban);
                 invoice.setDescription("conf. " + invoice.getDecont().split("\\.")[0] + " intocmit de " + nume);
@@ -744,7 +747,17 @@ public class AppUtils {
                 codAbonat = row.split("Cod client:")[1].trim();
             } else if (row.contains("Data emitere:")) {
                 String dataString = list.get(i + 2);
-                date = LocalDate.parse(dataString, DateTimeFormatter.ofPattern("dd/MM/yy"));
+                DateTimeFormatter formatter = new DateTimeFormatterBuilder()
+                        .appendPattern("dd")
+                        .optionalStart().appendLiteral('/').optionalEnd()
+                        .optionalStart().appendLiteral('.').optionalEnd()
+                        .appendPattern("MM")
+                        .optionalStart().appendLiteral('/').optionalEnd()
+                        .optionalStart().appendLiteral('.').optionalEnd()
+                        .appendPattern("yy")
+                        .toFormatter();
+
+                date = LocalDate.parse(dataString, formatter);
             }
             if (!total.isEmpty() && !nrFacturii.isEmpty() && !codAbonat.isEmpty() && date != null) {
                 invoice.setValue(total);
