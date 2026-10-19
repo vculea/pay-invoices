@@ -149,7 +149,7 @@ public class BTGo {
             } else {
                 addNewBeneficiary(invoice);
             }
-            scrollAndDoClickOn(nextButton);
+            Utils.sleep(500);            scrollAndDoClickOn(nextButton);
             TextField sumaEL = new TextField().setId("transferAmountInput");
             Retry.retry(2, () -> sumaEL.setValue(invoice.getValue()));
             Utils.sleep(1000);
@@ -350,16 +350,16 @@ public class BTGo {
         WebLocator depozitClasicCointainer = new WebLocator().setTag("fba-deposit-saving-accounts-root");
         Card fromCont = new Card(depozitClasicCointainer);
         fromCont.setValue(value);
-        WebLocator periodEl = new WebLocator().setId("slider-item-2");
-        periodEl.scrollIntoView(Go.CENTER);
-        periodEl.click();
+        WebLocator selection = new WebLocator().setClasses("markers-section");
+        selection.scrollIntoView(Go.CENTER);
+        WebLocator selectionEl = new WebLocator(selection).setClasses("marker", "ng-star-inserted").setAttribute("style", "left: 60%; display: block; background-color: var(--track-bg);");
+        selectionEl.click(); // 12 luni
         WebLocator autoRollover = new WebLocator().setId("autoRolloverSwitch");
-        CheckBox automat = new CheckBox(autoRollover);
+        CheckBox automat = new CheckBox(autoRollover).setId("formInput");
         automat.check(true);
         WebLocator termsAndConditionsEl = new WebLocator().setId("termsAndConditionsCheckbox");
-        CheckBox termsAndConditions = new CheckBox(termsAndConditionsEl);
+        CheckBox termsAndConditions = new CheckBox(termsAndConditionsEl).setId("termsAndConditionsCheckbox-input");
         termsAndConditions.check(true);
-        Button nextButton = new Button(null, "Mergi mai departe", SearchType.TRIM).setId("moveForwardBtn");
         scrollAndDoClickOn(nextButton);
         Utils.sleep(1000);
         Button semneazaButton = new Button(null, "Semnează", SearchType.TRIM).setId("moveForwardBtn");

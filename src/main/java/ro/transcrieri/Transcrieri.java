@@ -102,15 +102,8 @@ public class Transcrieri {
         for (Item item : items) {
             boolean result = Retry.retry(Duration.ofSeconds(5), dayEl::isPresent);
             if (result) {
-                boolean selectOra = Retry.retry(30, () -> {
-                    dayEl.click();
-                    boolean present = oreEl.isPresent();
-                    if (!present) {
-                        Utils.sleep(1100);
-                    }
-                    return present;
-                });
-                if (selectOra) {
+                boolean selectedDay = isSelectedDay();
+                if (selectedDay) {
                     Retry.retry(30, () -> {
                         boolean doClick = oreEl.doClick();
                         if (doClick && informare.isPresent()) {
@@ -120,7 +113,24 @@ public class Transcrieri {
                         }
                         return false;
                     });
+                } else {
+                    selectedDay = isSelectedDay();
+                    if (selectedDay) {
+                        Retry.retry(30, () -> {
+                            boolean doClick = oreEl.doClick();
+                            if (doClick && informare.isPresent()) {
+                                close.click();
+                            } else if (doClick) {
+                                return true;
+                            }
+                            return false;
+                        });
+                    } else {
+                        log.info("Nu s-a putut selecta ziua pentru item-ul: " + item);
+                    }
                 }
+            } else {
+                log.info("Nu s-a putut selecta ziua pentru item-ul: " + item);
             }
 //Verifying...
 //            oreEl.setResultIdx(7); // 1-8
@@ -149,6 +159,18 @@ public class Transcrieri {
             Utils.sleep(1);
 //        for captcha ->    https://stackoverflow.com/questions/18935696/how-to-read-the-text-from-image-captcha-by-using-selenium-webdriver-with-java
         }
+    }
+
+    private boolean isSelectedDay() {
+        boolean selectOra = Retry.retry(30, () -> {
+            dayEl.click();
+            boolean present = oreEl.isPresent();
+            if (!present) {
+                Utils.sleep(1100);
+            }
+            return present;
+        });
+        return selectOra;
     }
 
     private void selectDate(Item item) {

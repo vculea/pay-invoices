@@ -68,6 +68,10 @@ public class Oblio {
                 rowEl.scrollIntoView(Go.CENTER);
                 Cell cell1 = rowEl.getCell(1);
                 String furnizor = cell1.getText().split("\\n")[0].trim();
+                log.info("Furnizor: {}", furnizor);
+                if (furnizor.equals("SUPERCOM SA")) {
+                    Utils.sleep(1);
+                }
                 Cell cell2 = rowEl.getCell(2);
                 WebLocator cell2El = new WebLocator(cell2).setTag("p").setClasses("text-sm");
                 String dataEFactura = cell2El.getText();
@@ -80,25 +84,10 @@ public class Oblio {
                     if (suma == 228.04) {
                         Utils.sleep(1);
                     }
-                    Optional<RowRecord> first = list.stream().filter(f -> {
-                        LocalDate dateInvoice = LocalDate.parse(dataEFactura, DateTimeFormatter.ofPattern("dd.MM.yyyy", appUtils.getLocale()));
-                        LocalDate dateRow = LocalDate.parse(f.data(), DateTimeFormatter.ofPattern("dd/MM/yyyy", appUtils.getLocale()));
-                        boolean dataEqual = dateInvoice.equals(dateRow);
-                        Double val = Double.parseDouble(f.value().replace(".", "").replace(",", "."));
-                        if (f.description().equals("Avans cazare") || f.description().equals("cazare adolescenti")) {
-                            Utils.sleep(1);
-                        }
-                        boolean approximate = isApproximate(suma, val);
-                        boolean isValue = val.equals(suma) || approximate && dataEqual;
-                        if (isValue) {
-                            Utils.sleep(1);
-                        }
-                        boolean valid = dataEqual ? dataEqual && isValue : isValue;
-                        if (valid) {
-                            log.info("Data: {}-> Value: {}", dataEqual, isValue);
-                        }
-                        return valid; // && f.eFactura().isEmpty();
-                    }).findFirst();
+                    LocalDate dateInvoice = LocalDate.parse(dataEFactura, DateTimeFormatter.ofPattern("dd.MM.yyyy", appUtils.getLocale()));
+                    DateTimeFormatter rowDateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy", appUtils.getLocale());
+                    Optional<RowRecord> first = findMatchingRow(list, dateInvoice, suma, rowDateFormatter);
+                    first.ifPresent(match -> log.info("Data: {} -> Value: {}", match.data(), match.value()));
                     if (first.isPresent()) {
                         if (Strings.isNullOrEmpty(first.get().eFactura())) {
                             Cell cell = rowEl.getCell(6);
@@ -151,9 +140,28 @@ public class Oblio {
             WebLocator pagination = new WebLocator().setId("pager");
             WebLink nextPage = new WebLink(pagination, next + "");
             nextPage.click();
+            Utils.sleep(1000);
             count = table.getCount();
         } while (count > 0 && next <= 4);
         Utils.sleep(1);
+    }
+
+    static Optional<RowRecord> findMatchingRow(List<RowRecord> list, LocalDate dateInvoice, double suma,
+                                               DateTimeFormatter rowDateFormatter) {
+        RowRecord approximateMatch = null;
+        for (RowRecord row : list) {
+            if (!dateInvoice.equals(LocalDate.parse(row.data(), rowDateFormatter))) {
+                continue;
+            }
+            double value = Double.parseDouble(row.value().replace(".", "").replace(",", "."));
+            if (Double.compare(value, suma) == 0) {
+                return Optional.of(row);
+            }
+            if (approximateMatch == null && isApproximate(suma, value)) {
+                approximateMatch = row;
+            }
+        }
+        return Optional.ofNullable(approximateMatch);
     }
 
     public static boolean isApproximate(double sumaCurenta, double sumaTinta) {
