@@ -149,7 +149,8 @@ public class BTGo {
             } else {
                 addNewBeneficiary(invoice);
             }
-            Utils.sleep(500);            scrollAndDoClickOn(nextButton);
+            Utils.sleep(500);
+            scrollAndDoClickOn(nextButton);
             TextField sumaEL = new TextField().setId("transferAmountInput");
             Retry.retry(2, () -> sumaEL.setValue(invoice.getValue()));
             Utils.sleep(1000);
@@ -373,6 +374,9 @@ public class BTGo {
         goHome.scrollIntoView(Go.NEAREST);
         goHome.ready(Duration.ofSeconds(10));
         goHome.doClick();
+        Utils.sleep(500);
+        homeBtn.doClick();
+        Utils.sleep(1000);
     }
 
     public String period(String month) {

@@ -45,7 +45,7 @@ public class AppUtils {
     private final String deciziiFolderId = "1wRD-w80KHwxjljbWLr-wQ42s5FDv4Vv9";// 2026/Decizii
     private final String doveziFolderId = "1LOpGZSmUXxxs0KLAK9Rv6cwuo7-Cf1q-";// 2026/Dovezi
     private final String extrasCardFolderId = "1bXiP7dmAaasre_6ghEp_vWQUB49R2lgC";// 2025/ExtrasCard
-    private final String decontFolderId = "1qSc0ZHUwPoetQZI_j2V61tSqBdlDvEca";// 2025/Decont
+    private final String decontFolderId = "1RcbpT8eBN6pJ4bTke-Pk2eJmC4tyqKCU";// 2026/Decont
     private final Locale locale = new Locale("ro", "RO");
     private final static Locale localeStatic = new Locale("ro", "RO");
 
@@ -208,7 +208,9 @@ public class AppUtils {
         List<RowTO> list = values.stream().map(i ->
                 new RowTO(
                         (String) i.get(0), (String) i.get(1), (String) i.get(2), (String) i.get(3),
-                        (String) i.get(4), (String) i.get(5), "", "", "", ""
+                        i.size() != 5 ? "" : (String) i.get(4),
+                        i.size() != 6 ? "" : (String) i.get(5),
+                        "", "", "", ""
                 )).toList();
         Optional<RowTO> firstRow = list.stream().filter(i -> isBefore(i, localDate)).reduce((first, second) -> first);
         int id = list.size();

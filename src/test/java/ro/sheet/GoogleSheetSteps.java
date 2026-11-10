@@ -4,6 +4,7 @@ import com.google.common.base.Strings;
 import com.sdl.selenium.web.utils.Utils;
 import io.cucumber.java.en.And;
 import lombok.extern.slf4j.Slf4j;
+import org.fasttrackit.util.AdministratieFinanciara;
 import org.fasttrackit.util.AppUtils;
 import org.fasttrackit.util.TestBase;
 import org.fasttrackit.util.UserCredentials;
@@ -20,6 +21,7 @@ import java.util.stream.IntStream;
 public class GoogleSheetSteps extends TestBase {
 
     private final AppUtils appUtils = new AppUtils();
+    private final AdministratieFinanciara administratieFinanciara = new AdministratieFinanciara();
     private final UserCredentials credentials = new UserCredentials();
 
     @And("I add in Facturi or Bonuri in google sheet:")
@@ -29,6 +31,8 @@ public class GoogleSheetSteps extends TestBase {
             String deciziilePath = Strings.isNullOrEmpty(item.getDecizia()) ? "" : decizii();
             String decontPath = Strings.isNullOrEmpty(item.getDecont()) ? "" : deconturi();
             appUtils.uploadFileAndAddRowInFacturiAndContForItem(item, facturaPath, deciziilePath, decontPath);
+            administratieFinanciara.addTransaction(item, facturaPath + item.getFileName());
+            Utils.sleep(1);
         }
     }
 
