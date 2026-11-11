@@ -31,7 +31,7 @@ public class GoogleSheetSteps extends TestBase {
             String deciziilePath = Strings.isNullOrEmpty(item.getDecizia()) ? "" : decizii();
             String decontPath = Strings.isNullOrEmpty(item.getDecont()) ? "" : deconturi();
             appUtils.uploadFileAndAddRowInFacturiAndContForItem(item, facturaPath, deciziilePath, decontPath);
-            administratieFinanciara.addTransaction(item, facturaPath + item.getFileName());
+            administratieFinanciara.addTransaction(item, facturaPath + item.getFileName(), null);
             Utils.sleep(1);
         }
     }

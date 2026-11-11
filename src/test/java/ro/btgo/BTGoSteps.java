@@ -11,15 +11,11 @@ import com.sdl.selenium.web.SearchType;
 import com.sdl.selenium.web.link.WebLink;
 import com.sdl.selenium.web.utils.RetryUtils;
 import com.sdl.selenium.web.utils.Utils;
-import io.cucumber.java.PendingException;
 import io.cucumber.java.en.And;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.fasttrackit.util.AppUtils;
-import org.fasttrackit.util.FileUtility;
-import org.fasttrackit.util.TestBase;
-import org.fasttrackit.util.UserCredentials;
+import org.fasttrackit.util.*;
 import ro.neo.Invoice;
 import ro.neo.MemberPay;
 import ro.neo.Storage;
@@ -55,6 +51,7 @@ public class BTGoSteps extends TestBase {
     private static Sheets sheetsService;
     private final Locale roLocale = new Locale("ro", "RO");
     private final UserCredentials credentials = new UserCredentials();
+    private final AdministratieFinanciara administratieFinanciara = new AdministratieFinanciara();
 
     @And("I login in BTGo")
     public void iLoginInBTGo() {
@@ -90,6 +87,9 @@ public class BTGoSteps extends TestBase {
                 String deciziaFilePath = invoice.getDecizia() == null ? null : decizii() + invoice.getDecizia();
                 double value = Double.parseDouble(invoice.getValue());
                 appUtils.uploadFileAndAddRowInFacturiAndContForItem(facturaFilePath, dovadaFilePath, deciziaFilePath, invoice.getCategory(), invoice.getDescription(), value, invoice.getData());
+                String format = invoice.getData().format(DateTimeFormatter.ofPattern("dd.MM.yyyy", roLocale));
+                ItemTO item = new ItemTO(invoice.getFileName(), null, null, "Factura", "Cont", invoice.getCategory(), format, invoice.getValue(), invoice.getDescription());
+                administratieFinanciara.addTransaction(item, facturaFilePath, dovadaFilePath);
             }
         }
     }
@@ -197,8 +197,12 @@ public class BTGoSteps extends TestBase {
                     changeMonthInSheetNew(month, payDistinct, allPays, sheetId);
                     String fileName = Storage.get("fileName");
                     double value = Double.parseDouble(String.valueOf(sumForDestination));
-                    String category = invoice.getCategory().replaceAll(" ", "") + "Out";
+                    String category = invoice.getCategory().replace(" ", "") + "Out";
                     appUtils.uploadFileAndAddRowInFacturiAndContForItem(null, dovezi() + fileName, null, category, "plata", value, localDate);
+                    String data = localDate.format(DateTimeFormatter.ofPattern("dd.MM.yyyy", roLocale));
+                    ItemTO item = new ItemTO(invoice.getFileName(), null, null, "Factura", "Cont", category, data, String.valueOf(sumForDestination), "plata");
+                    administratieFinanciara.addTransaction(item, null, dovezi() + fileName);
+                    AppUtils.openUrl("https://goapp.bancatransilvania.ro/app/auth/login");
                 }
             }
         }
