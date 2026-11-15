@@ -52,19 +52,20 @@ public class AdministratieFinanciara extends WebLocator {
             case "FelixOut" -> "Caminul Felix";
             case "TanzaniaOut" -> "Tanzania";
             case "SomethingNewOut" -> "Something New";
+            case "Femei" -> "MomCo";
             default -> item.getCategory();
         };
         categoryEl.sendKeys(category);
         categoryEl.sendKeys(Keys.ENTER);
         descriptionEl.sendKeys(item.getDescription());
         if (facturaPath != null) {
-            uploadFacturaEl.uploadFile(facturaPath);
             String tipFinal = switch (item.getType()) {
                 case "Factura" -> "Factură";
                 case "Bon cu CUI" -> "Bon fiscal";
                 default -> throw new IllegalArgumentException("Invalid tip: " + item.getType());
             };
             tipDocumentEl.select(tipFinal);
+            uploadFacturaEl.uploadFile(facturaPath);
         }
         if (dovadaFilePath != null) {
             uploadDovadaEl.uploadFile(dovadaFilePath);
