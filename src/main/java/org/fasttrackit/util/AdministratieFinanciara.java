@@ -10,8 +10,13 @@ import com.sdl.selenium.web.WebLocator;
 import com.sdl.selenium.web.button.UploadButton;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.support.ui.WebDriverWait;
 import ro.sheet.ItemTO;
+
+import java.time.Duration;
 
 @Slf4j
 @Getter
@@ -25,7 +30,8 @@ public class AdministratieFinanciara extends WebLocator {
     private final WebLocator categoryEl = new WebLocator(addTransactionDialog).setTag("input").setName("categoryId");
     private final WebLocator descriptionEl = new WebLocator(addTransactionDialog).setTag("textarea").setName("description");
     private final UploadButton uploadFacturaEl = new UploadButton(addTransactionDialog).setType("file");
-    private final UploadButton uploadDovadaEl = new UploadButton(addTransactionDialog).setType("file").setAttribute("aria-label", "Fișier: Dovadă de plată (doar PDF)");
+    private final UploadButton uploadDovadaEl = new UploadButton(addTransactionDialog).setType("file").setAttribute("aria-label", "Fișier: Dovadă de plată");
+    private final UploadButton uploadDecontEl = new UploadButton(addTransactionDialog).setType("file").setAttribute("aria-label", "Fișier: Decont");
     private final ComboBox tipDocumentEl = new ComboBox(addTransactionDialog).setResultIdx(3);
     private final Button saveButton = new Button(addTransactionDialog, "Salvează").setType("submit");
 
@@ -38,9 +44,9 @@ public class AdministratieFinanciara extends WebLocator {
         WebDriverConfig.getDriver().get(url);
     }
 
-    public void addTransaction(ItemTO item, String facturaPath, String dovadaFilePath) {
+    public void addTransaction(ItemTO item, String facturaPath, String decontPath, String dovadaFilePath) {
         openUrl("http://localhost:5173/transactions");
-        continuaButton.click();
+        ensureAuthenticated(WebDriverConfig.getDriver(), continuaButton::click);
         addTransactionButton.click();
         contEl.select("Cont (RON)");
         amountEl.sendKeys(item.getValue());
@@ -67,11 +73,44 @@ public class AdministratieFinanciara extends WebLocator {
             tipDocumentEl.select(tipFinal);
             uploadFacturaEl.uploadFile(facturaPath);
         }
+        if (decontPath != null) {
+            uploadDecontEl.uploadFile(decontPath);
+        }
         if (dovadaFilePath != null) {
             uploadDovadaEl.uploadFile(dovadaFilePath);
         }
         saveButton.click();
     }
 
+    static void ensureAuthenticated(WebDriver driver, Runnable signIn) {
+        By loginButton = By.xpath("//button[normalize-space(.)='Continuă cu Google']");
+        By transactionButton = By.xpath("//button[normalize-space(.)='Adaugă tranzacție']");
+
+        AuthenticationState state = new WebDriverWait(driver, Duration.ofSeconds(30)).until(currentDriver -> {
+            if (isVisible(currentDriver, transactionButton)) {
+                return AuthenticationState.AUTHENTICATED;
+            }
+            if (isVisible(currentDriver, loginButton)) {
+                return AuthenticationState.LOGIN_REQUIRED;
+            }
+            return null;
+        });
+
+        if (state == AuthenticationState.LOGIN_REQUIRED) {
+            log.info("Conectați-vă manual cu Google în browser; aștept finalizarea autentificării.");
+            signIn.run();
+            new WebDriverWait(driver, Duration.ofMinutes(5))
+                    .until(currentDriver -> isVisible(currentDriver, transactionButton));
+        }
+    }
+
+    private static boolean isVisible(WebDriver driver, By locator) {
+        return driver.findElements(locator).stream().anyMatch(element -> element.isDisplayed());
+    }
+
+    private enum AuthenticationState {
+        AUTHENTICATED,
+        LOGIN_REQUIRED
+    }
 
 }

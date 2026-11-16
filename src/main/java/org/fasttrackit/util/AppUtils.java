@@ -232,7 +232,8 @@ public class AppUtils {
         List<RowTO> list = values.stream().map(i ->
                 new RowTO(
                         (String) i.get(0), (String) i.get(1), (String) i.get(2), (String) i.get(3),
-                        (String) i.get(4), (String) i.get(5),
+                        (String) i.get(4),
+                        i.size() !=6 ? "" : (String) i.get(5),
                         i.size() != 7 ? "" : (String) i.get(6),
                         i.size() != 8 ? "" : (String) i.get(7),
                         i.size() != 9 ? "" : (String) i.get(8),
