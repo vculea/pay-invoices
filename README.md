@@ -31,6 +31,22 @@ This invoices are tested/ready for :
 ## Running the Tests:
 
     mvn clean test -Dtest=*Runner
+
+## Administrare financiară: autentificare Google
+
+Browserul de test folosește profilul local `.chrome-profile`, separat de profilul
+Chrome obișnuit. La prima rulare, conectează-te manual cu Google în fereastra
+deschisă, inclusiv cu verificarea suplimentară dacă este cerută. Automatizarea
+așteaptă până la 5 minute. La rulările următoare folosește sesiunea Google
+salvată; aplicația poate redeschide autentificarea, dar nu ar trebui să ceară
+din nou parola cât timp sesiunea Google este validă. Dacă expiră, conectează-te
+din nou.
+
+Profilul conține date de autentificare și este ignorat de Git: nu îl partaja și
+nu rula simultan mai multe instanțe cu acest profil. Toate scenariile care
+folosesc `chrome.properties` împart acest profil. Nu este necesară salvarea
+parolei în proiect. Din cauza modului în care Testy citește opțiunile Chrome,
+calea proiectului nu poate conține spații atunci când este folosit acest profil.
     
 ## Things to improve (TODOs)
 

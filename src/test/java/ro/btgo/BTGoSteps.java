@@ -89,7 +89,7 @@ public class BTGoSteps extends TestBase {
                 appUtils.uploadFileAndAddRowInFacturiAndContForItem(facturaFilePath, dovadaFilePath, deciziaFilePath, invoice.getCategory(), invoice.getDescription(), value, invoice.getData());
                 String format = invoice.getData().format(DateTimeFormatter.ofPattern("dd.MM.yyyy", roLocale));
                 ItemTO item = new ItemTO(invoice.getFileName(), null, null, "Factura", "Cont", invoice.getCategory(), format, invoice.getValue(), invoice.getDescription());
-                administratieFinanciara.addTransaction(item, facturaFilePath, dovadaFilePath);
+                administratieFinanciara.addTransaction(item, facturaFilePath, null, dovadaFilePath);
             }
         }
     }
@@ -201,7 +201,7 @@ public class BTGoSteps extends TestBase {
                     appUtils.uploadFileAndAddRowInFacturiAndContForItem(null, dovezi() + fileName, null, category, "plata", value, localDate);
                     String data = localDate.format(DateTimeFormatter.ofPattern("dd.MM.yyyy", roLocale));
                     ItemTO item = new ItemTO(invoice.getFileName(), null, null, "Factura", "Cont", category, data, String.valueOf(sumForDestination), "plata");
-                    administratieFinanciara.addTransaction(item, null, dovezi() + fileName);
+                    administratieFinanciara.addTransaction(item, null, null, dovezi() + fileName);
                     AppUtils.openUrl("https://goapp.bancatransilvania.ro/app/auth/login");
                 }
             }

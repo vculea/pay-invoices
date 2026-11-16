@@ -1,5 +1,6 @@
 .idea
 target/
+.chrome-profile/
 *.iml
 
 # logs (may contain important information)
@@ -18,4 +19,3 @@ src/test/resources/credentials.json
 src/test/resources/user-credential.properties
 
 ## ===============================================
-
